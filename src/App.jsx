@@ -106,7 +106,11 @@ function RoomJoiner() {
 
 function App() {
   return (
-    <BrowserRouter>
+    // GitHub Pages serves this build from /kuse-no-katachi/ (see vite.config.js's
+    // `base`), not from the domain root — without this, every route fails to
+    // match against that prefixed path and the app renders nothing. Vite sets
+    // BASE_URL to match `base` automatically, so this stays correct in dev too.
+    <BrowserRouter basename={import.meta.env.BASE_URL}>
       <TiltProvider>
         <ShakeProvider>
           <PeerLinkProvider>
