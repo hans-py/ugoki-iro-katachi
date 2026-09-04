@@ -6,7 +6,7 @@ export default defineConfig(({ command }) => ({
   // GitHub Pages serves a project (non-custom-domain) site under
   // /<repo-name>/, so the production build's asset paths need that prefix.
   // The dev server stays at root so local preview URLs are unaffected.
-  base: command === 'build' ? '/kuse-no-katachi/' : '/',
+  base: command === 'build' ? '/ugoki-iro-katachi/' : '/',
   plugins: [react()],
   server: {
     // Dev-only: lets the Cloudflare quick tunnel (a random *.trycloudflare.com
