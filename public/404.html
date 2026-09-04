@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>うごき、いろ、かたち。</title>
+    <!--
+      GitHub Pages is static hosting — it has no server-side rewrite, so a
+      direct/refreshed load of a client-side route like /display gets a real
+      404 instead of index.html. This is the standard workaround (see
+      rafgraph/spa-github-pages): redirect that 404 back to the app root,
+      encoding the intended path in a query string that index.html decodes
+      and restores via history.replaceState before React Router ever sees it.
+    -->
+    <script type="text/javascript">
+      var pathSegmentsToKeep = 1; // keep "/ugoki-iro-katachi"
+      var l = window.location;
+      l.replace(
+        l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
+        l.pathname.split('/').slice(0, 1 + pathSegmentsToKeep).join('/') + '/?/' +
+        l.pathname.slice(1).split('/').slice(pathSegmentsToKeep).join('/').replace(/&/g, '~and~') +
+        (l.search ? '&' + l.search.slice(1).replace(/&/g, '~and~') : '') +
+        l.hash
+      );
+    </script>
+  </head>
+  <body></body>
+</html>
