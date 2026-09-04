@@ -1,0 +1,127 @@
+import { useCallback, useEffect, useState } from 'react';
+import { BrowserRouter, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
+import { TiltProvider } from './engines/useTilt.jsx';
+import { ShakeProvider } from './engines/useShake.jsx';
+import { PeerLinkProvider, usePeerLink } from './engines/usePeerLink.jsx';
+import { pickRandomGames } from './data/titles.js';
+import Start from './screens/Start.jsx';
+import Result from './screens/Result.jsx';
+import Display from './screens/Display.jsx';
+import Instruction from './screens/Instruction.jsx';
+import GoFlash from './screens/GoFlash.jsx';
+import TiltFill from './games/TiltFill.jsx';
+import TiltMaze from './games/TiltMaze.jsx';
+import TimingCenter from './games/TimingCenter.jsx';
+import TimingRhythm from './games/TimingRhythm.jsx';
+import ShakeGauge from './games/ShakeGauge.jsx';
+import CompassAlign from './games/CompassAlign.jsx';
+import HoldStop from './games/HoldStop.jsx';
+import LineTrace from './games/LineTrace.jsx';
+import FlickSpeed from './games/FlickSpeed.jsx';
+import HandleSteer from './games/HandleSteer.jsx';
+import PolyClap from './games/PolyClap.jsx';
+import SmoothLift from './games/SmoothLift.jsx';
+
+// The four vivid "scene" backgrounds, cycled by playlist position so
+// consecutive rounds read like cuts between scenes in a motion-graphics
+// reel — instruction card, GO flash and the game itself all share one
+// scene's color for continuity.
+const SCENES = ['coral', 'cobalt', 'grass', 'magenta'];
+
+const GAME_COMPONENTS = {
+  tiltFill: TiltFill,
+  tiltMaze: TiltMaze,
+  timingCenter: TimingCenter,
+  timingRhythm: TimingRhythm,
+  shakeGauge: ShakeGauge,
+  compassAlign: CompassAlign,
+  holdStop: HoldStop,
+  lineTrace: LineTrace,
+  flickSpeed: FlickSpeed,
+  handleSteer: HandleSteer,
+  polyClap: PolyClap,
+  smoothLift: SmoothLift,
+};
+
+// Plays a random 5-game playlist (drawn once per run from the full pool),
+// then hands the collected scores to /result. A fresh `key` per game forces
+// a full remount so each game starts from its own clean initial state.
+function GameRunner() {
+  const navigate = useNavigate();
+  const [playlist] = useState(pickRandomGames);
+  const [index, setIndex] = useState(0);
+  const [scores, setScores] = useState([]);
+  const [phase, setPhase] = useState('instruction'); // 'instruction' | 'go' | 'playing'
+
+  const handleFinish = useCallback(
+    (result) => {
+      const game = playlist[index];
+      const nextScores = [...scores, { id: game.id, score: result.score }];
+      const nextIndex = index + 1;
+      if (nextIndex >= playlist.length) {
+        navigate('/result', { state: { scores: nextScores } });
+      } else {
+        setScores(nextScores);
+        setIndex(nextIndex);
+        setPhase('instruction');
+      }
+    },
+    [playlist, index, scores, navigate]
+  );
+
+  const game = playlist[index];
+  const scene = SCENES[index % SCENES.length];
+
+  if (phase === 'instruction') {
+    return (
+      <Instruction game={game} index={index} total={playlist.length} scene={scene} onStart={() => setPhase('go')} />
+    );
+  }
+
+  if (phase === 'go') {
+    return <GoFlash scene={scene} onDone={() => setPhase('playing')} />;
+  }
+
+  const GameComponent = GAME_COMPONENTS[game.id];
+  return <GameComponent key={game.id} scene={scene} onFinish={handleFinish} />;
+}
+
+// A phone that scanned the display's QR arrives at `/?room=XXXXX`. This
+// joins that room once, as soon as the code is present, regardless of which
+// route the phone is currently on — the connection then persists across
+// Start → Instruction → GO → each game, same as the tilt/shake permissions.
+function RoomJoiner() {
+  const location = useLocation();
+  const { role, joinRoom } = usePeerLink();
+
+  useEffect(() => {
+    const room = new URLSearchParams(location.search).get('room');
+    if (room && role === 'idle') {
+      joinRoom(room);
+    }
+  }, [location.search, role, joinRoom]);
+
+  return null;
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <TiltProvider>
+        <ShakeProvider>
+          <PeerLinkProvider>
+            <RoomJoiner />
+            <Routes>
+              <Route path="/" element={<Start />} />
+              <Route path="/play" element={<GameRunner />} />
+              <Route path="/result" element={<Result />} />
+              <Route path="/display" element={<Display />} />
+            </Routes>
+          </PeerLinkProvider>
+        </ShakeProvider>
+      </TiltProvider>
+    </BrowserRouter>
+  );
+}
+
+export default App;
