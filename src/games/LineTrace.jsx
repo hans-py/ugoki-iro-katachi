@@ -21,6 +21,7 @@ export default function LineTrace({ onFinish, scene }) {
   const [progress, setProgress] = useState(0);
   const [cursor, setCursor] = useState(null);
   const [status, setStatus] = useState('playing');
+  const [markers, setMarkers] = useState(null);
 
   const finish = useCallback(
     (cleared) => {
@@ -44,6 +45,7 @@ export default function LineTrace({ onFinish, scene }) {
       samples.push({ x: pt.x, y: pt.y });
     }
     samplesRef.current = samples;
+    setMarkers({ start: samples[0], end: samples[samples.length - 1] });
   }, []);
 
   useEffect(() => {
@@ -140,11 +142,25 @@ export default function LineTrace({ onFinish, scene }) {
             pathLength={1}
             style={{ strokeDasharray: 1, strokeDashoffset: 1 - progress }}
           />
+          {markers && (
+            <>
+              <circle cx={markers.end.x} cy={markers.end.y} r={10} className="trace-goal-dot" />
+              <g
+                className="trace-start-marker"
+                style={{ opacity: progress > 0.03 ? 0.15 : 1, transition: 'opacity 0.3s ease' }}
+              >
+                <circle cx={markers.start.x} cy={markers.start.y} r={9} className="trace-start-ring" />
+                <circle cx={markers.start.x} cy={markers.start.y} r={7} className="trace-start-dot" />
+              </g>
+            </>
+          )}
           {cursor && <circle cx={cursor.x} cy={cursor.y} r={7} className="trace-cursor" />}
         </svg>
       </div>
 
-      {status === 'playing' && <p className="hint">指でラインをなぞってゴールまで</p>}
+      {status === 'playing' && (
+        <p className="hint">{progress > 0 ? 'そのままゴールまでなぞって' : '光る点(スタート)から指でなぞってね'}</p>
+      )}
 
       {status !== 'playing' && (
         <div className="result-overlay">

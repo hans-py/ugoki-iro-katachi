@@ -803,6 +803,34 @@ body {
   fill: var(--teal);
 }
 
+/* Where to put your finger first — a pulsing ring plus solid dot at the
+   path's actual start point, since the bare path alone didn't make it
+   obvious the trace has a direction/origin. */
+.trace-start-dot {
+  fill: var(--pink);
+}
+
+.trace-start-ring {
+  fill: none;
+  stroke: var(--pink);
+  stroke-width: 3;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: trace-start-pulse 1.1s ease-out infinite;
+}
+
+@keyframes trace-start-pulse {
+  0% { transform: scale(0.8); opacity: 0.9; }
+  100% { transform: scale(2.6); opacity: 0; }
+}
+
+.trace-goal-dot {
+  fill: none;
+  stroke: var(--teal);
+  stroke-width: 3;
+  stroke-dasharray: 4 3;
+}
+
 .flick-arrow-wrap {
   position: relative;
   width: 200px;
@@ -844,6 +872,7 @@ body {
 }
 
 .poly-clap-zone {
+  position: relative;
   flex: 1;
   display: flex;
   align-items: center;
@@ -855,9 +884,29 @@ body {
   font-size: 1.1rem;
   color: var(--ink);
   opacity: 0.6;
+  overflow: hidden;
   transition: background-color 0.1s ease, opacity 0.1s ease, transform 0.1s ease;
   touch-action: none;
   user-select: none;
+}
+
+.poly-clap-zone > span:not(.poly-beat-ring) {
+  position: relative;
+  z-index: 1;
+}
+
+/* Shrinks from a wide ring down to the zone's own size exactly as the next
+   beat lands (driven by JS setting `transform: scale()` per frame) — a
+   visual metronome, since the beat schedule was previously invisible until
+   you'd already missed a few. */
+.poly-beat-ring {
+  position: absolute;
+  width: 64%;
+  height: 64%;
+  border-radius: 50%;
+  border: 4px solid var(--ink);
+  opacity: 0.3;
+  pointer-events: none;
 }
 
 .poly-clap-zone.flash-perfect {

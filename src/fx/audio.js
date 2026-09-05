@@ -32,3 +32,38 @@ export function playChime() {
   }
   chimeSynth.triggerAttackRelease(['C5', 'E5', 'G5'], '8n');
 }
+
+let leftTickSynth;
+let rightTickSynth;
+let leftNextTickTime = 0;
+let rightNextTickTime = 0;
+
+// A quiet metronome guide for polyrhythm-style games — one low, one high
+// pitch per side, so each hand's own tempo is audible (not just visible)
+// regardless of whether the player's tap landed on the beat.
+export function playTick(side) {
+  if (!started) return;
+  const now = Tone.now();
+  if (side === 'left') {
+    if (!leftTickSynth) {
+      leftTickSynth = new Tone.MembraneSynth({ envelope: { attack: 0.001, decay: 0.12, sustain: 0 } }).toDestination();
+      leftTickSynth.volume.value = -12;
+    }
+    // Tone requires each trigger's time to be strictly later than the
+    // synth's previous one — a caller catching up on several overdue beats
+    // in one animation frame would otherwise call this with the same
+    // Tone.now() twice and throw. Nudge forward instead of relying on the
+    // clock to have visibly advanced between calls.
+    const time = Math.max(now, leftNextTickTime + 0.001);
+    leftTickSynth.triggerAttackRelease('C2', '32n', time);
+    leftNextTickTime = time;
+  } else {
+    if (!rightTickSynth) {
+      rightTickSynth = new Tone.MembraneSynth({ envelope: { attack: 0.001, decay: 0.08, sustain: 0 } }).toDestination();
+      rightTickSynth.volume.value = -16;
+    }
+    const time = Math.max(now, rightNextTickTime + 0.001);
+    rightTickSynth.triggerAttackRelease('G3', '32n', time);
+    rightNextTickTime = time;
+  }
+}

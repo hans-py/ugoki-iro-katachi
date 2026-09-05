@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Particles from '../fx/Particles.jsx';
 import Impact from '../fx/Impact.jsx';
-import { playChime } from '../fx/audio.js';
+import { playChime, playTick } from '../fx/audio.js';
 import Hud from '../screens/Hud.jsx';
 
 // A real 2-against-3 polyrhythm: the left hand's beat falls every 800ms
@@ -43,7 +43,18 @@ const LEFT_MAX_RAW = maxRawFor(LEFT_BEATS);
 const RIGHT_MAX_RAW = maxRawFor(RIGHT_BEATS);
 
 function createSide(beats) {
-  return { beats, index: 0, resolved: false, comboStreak: 0, raw: 0 };
+  return { beats, index: 0, resolved: false, comboStreak: 0, raw: 0, tickIndex: 0 };
+}
+
+// How close `elapsed` is to this side's next scheduled beat, as 0 (just
+// passed a beat) to 1 (a beat is landing right now) — drives the shrinking
+// "beat ring" so the correct tempo is visible before the player has heard
+// or tapped a single beat, not just inferred from the written instruction.
+function beatPhase(state, elapsed) {
+  const prevBeat = state.tickIndex > 0 ? state.beats[state.tickIndex - 1] : 0;
+  const nextBeat = state.beats[state.tickIndex] ?? state.beats[state.beats.length - 1];
+  const span = nextBeat - prevBeat;
+  return span > 0 ? Math.min(1, Math.max(0, (elapsed - prevBeat) / span)) : 1;
 }
 
 export default function PolyClap({ onFinish, scene }) {
@@ -52,6 +63,8 @@ export default function PolyClap({ onFinish, scene }) {
   const [rightCombo, setRightCombo] = useState(0);
   const [leftFlash, setLeftFlash] = useState(null);
   const [rightFlash, setRightFlash] = useState(null);
+  const [leftPhase, setLeftPhase] = useState(0);
+  const [rightPhase, setRightPhase] = useState(0);
   const [status, setStatus] = useState('playing');
   const [finalScore, setFinalScore] = useState(0);
 
@@ -127,11 +140,20 @@ export default function PolyClap({ onFinish, scene }) {
         ['right', rightRef],
       ]) {
         const state = ref.current;
+        // Guide ticks play on schedule regardless of whether the player
+        // hits, misses, or hasn't tapped yet — the metronome the written
+        // instruction alone couldn't convey.
+        while (state.tickIndex < state.beats.length && elapsed >= state.beats[state.tickIndex]) {
+          playTick(side);
+          state.tickIndex += 1;
+        }
         while (state.index < state.beats.length && !state.resolved && elapsed > state.beats[state.index] + HIT_WINDOW.good) {
           state.resolved = true;
           registerJudge(side, 'miss');
         }
       }
+      setLeftPhase(beatPhase(leftRef.current, elapsed));
+      setRightPhase(beatPhase(rightRef.current, elapsed));
 
       if (remaining <= 0) {
         maybeFinish();
@@ -158,17 +180,25 @@ export default function PolyClap({ onFinish, scene }) {
           className={`poly-clap-zone poly-clap-left ${leftFlash ? `flash-${leftFlash}` : ''}`}
           onPointerDown={() => handleTap('left')}
         >
+          <span className="poly-beat-ring" style={{ transform: `scale(${1.8 - 0.8 * leftPhase})` }} />
           <span>L・2拍子</span>
         </div>
         <div
           className={`poly-clap-zone poly-clap-right ${rightFlash ? `flash-${rightFlash}` : ''}`}
           onPointerDown={() => handleTap('right')}
         >
+          <span className="poly-beat-ring" style={{ transform: `scale(${1.8 - 0.8 * rightPhase})` }} />
           <span>R・3拍子</span>
         </div>
       </div>
 
-      {status === 'playing' && <p className="hint">左手は2拍子、右手は3拍子。両方同時にキープ</p>}
+      {status === 'playing' && (
+        <p className="hint">
+          {timeLeft > DURATION_MS - LEAD_IN_MS
+            ? '輪が縮みきったタイミングでタップ、まもなくスタート'
+            : '左手は2拍子、右手は3拍子。輪が縮みきった瞬間にタップ'}
+        </p>
+      )}
 
       {status === 'done' && (
         <div className="result-overlay">
