@@ -8,12 +8,22 @@ export default function QrCode({ value, size = 220 }) {
   const canvasRef = useRef(null);
 
   useEffect(() => {
-    if (!value || !canvasRef.current) return;
-    QRCode.toCanvas(canvasRef.current, value, {
+    const canvas = canvasRef.current;
+    if (!value || !canvas) return;
+    QRCode.toCanvas(canvas, value, {
       width: size,
       margin: 1,
       color: { dark: '#17102b', light: '#fff6e9' },
-    }).catch(() => {});
+    })
+      .then(() => {
+        // toCanvas sets its own inline width/height (matching `size` in
+        // pixels), which outranks the stylesheet's responsive sizing and
+        // makes the canvas ignore its container — reset it so the CSS
+        // width/height/object-fit rules on .qr-frame canvas take over again.
+        canvas.style.removeProperty('width');
+        canvas.style.removeProperty('height');
+      })
+      .catch(() => {});
   }, [value, size]);
 
   return <canvas ref={canvasRef} width={size} height={size} />;
