@@ -593,7 +593,8 @@ body {
   overflow: hidden;
 }
 
-.qr-frame img {
+.qr-frame img,
+.qr-frame canvas {
   width: 100%;
   height: 100%;
   object-fit: contain;
