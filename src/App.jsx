@@ -5,6 +5,7 @@ import { ShakeProvider } from './engines/useShake.jsx';
 import { PeerLinkProvider, usePeerLink } from './engines/usePeerLink.jsx';
 import { pickRandomGames } from './data/titles.js';
 import Start from './screens/Start.jsx';
+import ScanQr from './screens/ScanQr.jsx';
 import Result from './screens/Result.jsx';
 import Display from './screens/Display.jsx';
 import Instruction from './screens/Instruction.jsx';
@@ -117,6 +118,7 @@ function App() {
             <RoomJoiner />
             <Routes>
               <Route path="/" element={<Start />} />
+              <Route path="/scan" element={<ScanQr />} />
               <Route path="/play" element={<GameRunner />} />
               <Route path="/result" element={<Result />} />
               <Route path="/display" element={<Display />} />

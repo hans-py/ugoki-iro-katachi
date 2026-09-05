@@ -88,10 +88,10 @@ export function pickRandomGames() {
 }
 
 const TITLE_TABLE = [
-  { max: 150, label: 'まだ、ふわふわ' },
-  { max: 300, label: 'すこしずつ、かたちに' },
-  { max: 400, label: 'いろが見えてきた' },
-  { max: 500, label: 'うごきが、かたちになった' },
+  { max: 150, label: '動きのたまご' },
+  { max: 300, label: '動きのみならい' },
+  { max: 400, label: '動きのつかい手' },
+  { max: 500, label: '動きのマスター' },
 ];
 
 export function getTitle(total) {
