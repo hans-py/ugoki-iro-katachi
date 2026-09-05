@@ -2,14 +2,34 @@ import { useEffect } from 'react';
 import { usePeerLink } from '../engines/usePeerLink.jsx';
 import QrCode from '../fx/QrCode.jsx';
 import TiltFillView from '../games/display/TiltFillView.jsx';
+import TiltMazeView from '../games/display/TiltMazeView.jsx';
+import ShakeGaugeView from '../games/display/ShakeGaugeView.jsx';
+import CompassAlignView from '../games/display/CompassAlignView.jsx';
+import SmoothLiftView from '../games/display/SmoothLiftView.jsx';
+import TimingCenterView from '../games/display/TimingCenterView.jsx';
+import TimingRhythmView from '../games/display/TimingRhythmView.jsx';
+import HoldStopView from '../games/display/HoldStopView.jsx';
+import FlickSpeedView from '../games/display/FlickSpeedView.jsx';
+import HandleSteerView from '../games/display/HandleSteerView.jsx';
+import LineTraceView from '../games/display/LineTraceView.jsx';
+import PolyClapView from '../games/display/PolyClapView.jsx';
 import ResultView from './display/ResultView.jsx';
 
 // Games that know how to render themselves on the display from a phone's
-// broadcast state. Not every game has been converted yet — anything without
-// an entry here just falls back to the idle loop while that phone plays
-// locally on its own screen.
+// broadcast state.
 const DISPLAY_VIEWS = {
   tiltFill: TiltFillView,
+  tiltMaze: TiltMazeView,
+  shakeGauge: ShakeGaugeView,
+  compassAlign: CompassAlignView,
+  smoothLift: SmoothLiftView,
+  timingCenter: TimingCenterView,
+  timingRhythm: TimingRhythmView,
+  holdStop: HoldStopView,
+  flickSpeed: FlickSpeedView,
+  handleSteer: HandleSteerView,
+  lineTrace: LineTraceView,
+  polyClap: PolyClapView,
   result: ResultView,
 };
 

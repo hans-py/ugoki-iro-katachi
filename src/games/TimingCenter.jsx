@@ -1,20 +1,24 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTiming, judgeTiming } from '../engines/useTiming.js';
-import Particles from '../fx/Particles.jsx';
-import Impact from '../fx/Impact.jsx';
+import { usePeerLink } from '../engines/usePeerLink.jsx';
 import { playChime } from '../fx/audio.js';
-import Hud from '../screens/Hud.jsx';
+import TimingCenterVisual from './TimingCenterVisual.jsx';
 
 const TRIALS = 3;
 const POINTS = { perfect: 100, good: 60, miss: 20 };
-const LABEL = { perfect: 'Perfect!', good: 'Good', miss: 'Miss' };
 
 export default function TimingCenter({ onFinish, scene }) {
   const { position, sample } = useTiming({ periodMs: 1300 });
+  const { send } = usePeerLink();
   const [trial, setTrial] = useState(0);
   const [lastJudge, setLastJudge] = useState(null);
   const [scores, setScores] = useState([]);
   const [status, setStatus] = useState('playing');
+
+  useEffect(() => {
+    const averageScore = scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null;
+    send({ type: 'timingCenter', scene, trial, trials: TRIALS, position, status, lastJudge, averageScore });
+  }, [send, scene, trial, position, status, lastJudge, scores]);
 
   const handleTap = useCallback(() => {
     if (status !== 'playing') return;
@@ -39,31 +43,16 @@ export default function TimingCenter({ onFinish, scene }) {
   }, [status, sample, trial, scores, onFinish]);
 
   return (
-    <div className={`game-screen timing-center scene-${scene}`} onPointerDown={handleTap}>
-      <Hud items={[{ label: 'TRIAL', value: `${Math.min(trial + 1, TRIALS)}/${TRIALS}` }]} />
-
-      <div className="timing-track">
-        <div className="timing-zone-good" />
-        <div className="timing-zone-perfect" />
-        <div className="timing-marker" style={{ left: `${position * 100}%` }} />
-      </div>
-
-      {status === 'playing' && <p className="hint">画面をタップ — ど真ん中を狙え</p>}
-      {lastJudge && status === 'playing' && (
-        <div key={trial}>
-          {lastJudge === 'perfect' && <Impact variant="micro" />}
-          <p className={`judge-flash judge-${lastJudge}`}>{LABEL[lastJudge]}</p>
-        </div>
-      )}
-
-      {status === 'done' && (
-        <div className="result-overlay">
-          <Particles mode="burst" active color="#FFC53D" />
-          <Impact />
-          <h2>計測完了</h2>
-          <p>平均スコア {Math.round(scores.reduce((a, b) => a + b, 0) / TRIALS)}</p>
-        </div>
-      )}
-    </div>
+    <TimingCenterVisual
+      scene={scene}
+      trial={trial}
+      trials={TRIALS}
+      position={position}
+      status={status}
+      lastJudge={status === 'playing' ? lastJudge : null}
+      judgeKey={trial}
+      averageScore={Math.round(scores.reduce((a, b) => a + b, 0) / TRIALS)}
+      onPointerDown={handleTap}
+    />
   );
 }

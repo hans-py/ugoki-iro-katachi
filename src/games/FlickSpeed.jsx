@@ -1,25 +1,29 @@
-import { useCallback, useRef, useState } from 'react';
-import Particles from '../fx/Particles.jsx';
-import Impact from '../fx/Impact.jsx';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { usePeerLink } from '../engines/usePeerLink.jsx';
 import { playChime } from '../fx/audio.js';
-import Hud from '../screens/Hud.jsx';
+import FlickSpeedVisual from './FlickSpeedVisual.jsx';
 
 const TRIALS = 3;
 const MAX_FLICK_MS = 280; // slower than this doesn't count as a flick
 const MIN_DIST_PX = 60; // shorter than this doesn't count as a flick
 const POINTS = { perfect: 100, good: 60, miss: 20 };
-const LABEL = { perfect: 'Perfect!', good: 'Good', miss: 'Miss' };
 
 const norm360 = (a) => ((a % 360) + 360) % 360;
 const randomAngle = () => Math.floor(Math.random() * 360);
 
 export default function FlickSpeed({ onFinish, scene }) {
+  const { send } = usePeerLink();
   const [trial, setTrial] = useState(0);
   const [target, setTarget] = useState(randomAngle);
   const [lastJudge, setLastJudge] = useState(null);
   const [scores, setScores] = useState([]);
   const [status, setStatus] = useState('playing');
   const startRef = useRef(null);
+
+  useEffect(() => {
+    const averageScore = scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null;
+    send({ type: 'flickSpeed', scene, trial, trials: TRIALS, target, status, lastJudge, averageScore });
+  }, [send, scene, trial, target, status, lastJudge, scores]);
 
   const handleDown = useCallback(
     (e) => {
@@ -68,29 +72,17 @@ export default function FlickSpeed({ onFinish, scene }) {
   );
 
   return (
-    <div className={`game-screen flick-speed scene-${scene}`} onPointerDown={handleDown} onPointerUp={handleUp}>
-      <Hud items={[{ label: 'TRIAL', value: `${Math.min(trial + 1, TRIALS)}/${TRIALS}` }]} />
-
-      <div className="flick-arrow-wrap">
-        <div className="flick-arrow" style={{ transform: `rotate(${target}deg)` }} />
-      </div>
-
-      {status === 'playing' && <p className="hint">矢印の向きへ、すばやくフリック</p>}
-      {lastJudge && status === 'playing' && (
-        <div key={trial}>
-          {lastJudge === 'perfect' && <Impact variant="micro" />}
-          <p className={`judge-flash judge-${lastJudge}`}>{LABEL[lastJudge]}</p>
-        </div>
-      )}
-
-      {status === 'done' && (
-        <div className="result-overlay">
-          <Particles mode="burst" active color="#FFC53D" />
-          <Impact />
-          <h2>計測完了</h2>
-          <p>平均スコア {Math.round(scores.reduce((a, b) => a + b, 0) / TRIALS)}</p>
-        </div>
-      )}
-    </div>
+    <FlickSpeedVisual
+      scene={scene}
+      trial={trial}
+      trials={TRIALS}
+      target={target}
+      status={status}
+      lastJudge={status === 'playing' ? lastJudge : null}
+      judgeKey={trial}
+      averageScore={Math.round(scores.reduce((a, b) => a + b, 0) / TRIALS)}
+      onPointerDown={handleDown}
+      onPointerUp={handleUp}
+    />
   );
 }

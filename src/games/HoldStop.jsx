@@ -1,17 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import Particles from '../fx/Particles.jsx';
-import Impact from '../fx/Impact.jsx';
+import { usePeerLink } from '../engines/usePeerLink.jsx';
 import { playChime } from '../fx/audio.js';
-import Hud from '../screens/Hud.jsx';
+import HoldStopVisual from './HoldStopVisual.jsx';
 
 const TRIALS = 3;
 const FILL_DURATION_MS = 1200; // time to charge from 0% to 100% while held
 const TARGET = 0.78;
 const ZONE = { perfect: 0.04, good: 0.12 };
 const POINTS = { perfect: 100, good: 60, miss: 20 };
-const LABEL = { perfect: 'Perfect!', good: 'Good', miss: 'Miss' };
 
 export default function HoldStop({ onFinish, scene }) {
+  const { send } = usePeerLink();
   const [trial, setTrial] = useState(0);
   const [fill, setFill] = useState(0);
   const [holding, setHolding] = useState(false);
@@ -22,6 +21,11 @@ export default function HoldStop({ onFinish, scene }) {
   const fillRef = useRef(0);
   const holdStartRef = useRef(0);
   const rafRef = useRef();
+
+  useEffect(() => {
+    const averageScore = scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null;
+    send({ type: 'holdStop', scene, trial, trials: TRIALS, fill, status, lastJudge, averageScore });
+  }, [send, scene, trial, fill, status, lastJudge, scores]);
 
   const registerResult = useCallback(
     (value) => {
@@ -75,31 +79,17 @@ export default function HoldStop({ onFinish, scene }) {
   useEffect(() => () => cancelAnimationFrame(rafRef.current), []);
 
   return (
-    <div className={`game-screen hold-stop scene-${scene}`} onPointerDown={handleDown} onPointerUp={handleUp}>
-      <Hud items={[{ label: 'TRIAL', value: `${Math.min(trial + 1, TRIALS)}/${TRIALS}` }]} />
-
-      <div className="hold-track">
-        <div className="hold-zone-good" />
-        <div className="hold-zone-perfect" />
-        <div className="hold-fill" style={{ height: `${fill * 100}%` }} />
-      </div>
-
-      {status === 'playing' && <p className="hint">押しっぱなしで貯めて、ねらった位置で離す</p>}
-      {lastJudge && status === 'playing' && (
-        <div key={trial}>
-          {lastJudge === 'perfect' && <Impact variant="micro" />}
-          <p className={`judge-flash judge-${lastJudge}`}>{LABEL[lastJudge]}</p>
-        </div>
-      )}
-
-      {status === 'done' && (
-        <div className="result-overlay">
-          <Particles mode="burst" active color="#FFC53D" />
-          <Impact />
-          <h2>計測完了</h2>
-          <p>平均スコア {Math.round(scores.reduce((a, b) => a + b, 0) / TRIALS)}</p>
-        </div>
-      )}
-    </div>
+    <HoldStopVisual
+      scene={scene}
+      trial={trial}
+      trials={TRIALS}
+      fill={fill}
+      status={status}
+      lastJudge={status === 'playing' ? lastJudge : null}
+      judgeKey={trial}
+      averageScore={Math.round(scores.reduce((a, b) => a + b, 0) / TRIALS)}
+      onPointerDown={handleDown}
+      onPointerUp={handleUp}
+    />
   );
 }

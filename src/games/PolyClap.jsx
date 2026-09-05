@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import Particles from '../fx/Particles.jsx';
-import Impact from '../fx/Impact.jsx';
+import { usePeerLink } from '../engines/usePeerLink.jsx';
 import { playChime, playTick } from '../fx/audio.js';
-import Hud from '../screens/Hud.jsx';
+import PolyClapVisual from './PolyClapVisual.jsx';
 
 // A real 2-against-3 polyrhythm: the left hand's beat falls every 800ms
 // (2 per measure) while the right hand's falls every ~533ms (3 per measure)
@@ -58,6 +57,7 @@ function beatPhase(state, elapsed) {
 }
 
 export default function PolyClap({ onFinish, scene }) {
+  const { send } = usePeerLink();
   const [timeLeft, setTimeLeft] = useState(DURATION_MS);
   const [leftCombo, setLeftCombo] = useState(0);
   const [rightCombo, setRightCombo] = useState(0);
@@ -72,6 +72,9 @@ export default function PolyClap({ onFinish, scene }) {
   const leftRef = useRef(createSide(LEFT_BEATS));
   const rightRef = useRef(createSide(RIGHT_BEATS));
   const finishedRef = useRef(false);
+  const leftFlashRef = useRef(null);
+  const rightFlashRef = useRef(null);
+  const finalScoreRef = useRef(0);
 
   const maybeFinish = useCallback(() => {
     if (finishedRef.current) return;
@@ -80,6 +83,7 @@ export default function PolyClap({ onFinish, scene }) {
       const leftScore = leftRef.current.raw / LEFT_MAX_RAW;
       const rightScore = rightRef.current.raw / RIGHT_MAX_RAW;
       const score = Math.round(((leftScore + rightScore) / 2) * 100);
+      finalScoreRef.current = score;
       setFinalScore(score);
       setStatus('done');
       onFinish?.({ score });
@@ -96,9 +100,11 @@ export default function PolyClap({ onFinish, scene }) {
       state.resolved = false;
 
       if (side === 'left') {
+        leftFlashRef.current = judge;
         setLeftCombo(state.comboStreak);
         setLeftFlash(judge);
       } else {
+        rightFlashRef.current = judge;
         setRightCombo(state.comboStreak);
         setRightFlash(judge);
       }
@@ -152,8 +158,26 @@ export default function PolyClap({ onFinish, scene }) {
           registerJudge(side, 'miss');
         }
       }
-      setLeftPhase(beatPhase(leftRef.current, elapsed));
-      setRightPhase(beatPhase(rightRef.current, elapsed));
+      const leftPhaseNow = beatPhase(leftRef.current, elapsed);
+      const rightPhaseNow = beatPhase(rightRef.current, elapsed);
+      setLeftPhase(leftPhaseNow);
+      setRightPhase(rightPhaseNow);
+
+      send({
+        type: 'polyClap',
+        scene,
+        timeLeft: remaining,
+        durationMs: DURATION_MS,
+        leadInMs: LEAD_IN_MS,
+        leftCombo: leftRef.current.comboStreak,
+        rightCombo: rightRef.current.comboStreak,
+        leftFlash: leftFlashRef.current,
+        rightFlash: rightFlashRef.current,
+        leftPhase: leftPhaseNow,
+        rightPhase: rightPhaseNow,
+        status: finishedRef.current ? 'done' : 'playing',
+        finalScore: finalScoreRef.current,
+      });
 
       if (remaining <= 0) {
         maybeFinish();
@@ -163,51 +187,24 @@ export default function PolyClap({ onFinish, scene }) {
     }
 
     return () => cancelAnimationFrame(raf);
-  }, [registerJudge, maybeFinish]);
+  }, [registerJudge, maybeFinish, scene, send]);
 
   return (
-    <div className={`game-screen poly-clap scene-${scene}`}>
-      <Hud
-        items={[
-          { label: 'TIME', value: `${(timeLeft / 1000).toFixed(1)}s` },
-          { label: 'L', value: `x${leftCombo}` },
-          { label: 'R', value: `x${rightCombo}` },
-        ]}
-      />
-
-      <div className="poly-clap-zones">
-        <div
-          className={`poly-clap-zone poly-clap-left ${leftFlash ? `flash-${leftFlash}` : ''}`}
-          onPointerDown={() => handleTap('left')}
-        >
-          <span className="poly-beat-ring" style={{ transform: `scale(${1.8 - 0.8 * leftPhase})` }} />
-          <span>L・2拍子</span>
-        </div>
-        <div
-          className={`poly-clap-zone poly-clap-right ${rightFlash ? `flash-${rightFlash}` : ''}`}
-          onPointerDown={() => handleTap('right')}
-        >
-          <span className="poly-beat-ring" style={{ transform: `scale(${1.8 - 0.8 * rightPhase})` }} />
-          <span>R・3拍子</span>
-        </div>
-      </div>
-
-      {status === 'playing' && (
-        <p className="hint">
-          {timeLeft > DURATION_MS - LEAD_IN_MS
-            ? '輪が縮みきったタイミングでタップ、まもなくスタート'
-            : '左手は2拍子、右手は3拍子。輪が縮みきった瞬間にタップ'}
-        </p>
-      )}
-
-      {status === 'done' && (
-        <div className="result-overlay">
-          <Particles mode="burst" active color="#FFC53D" />
-          <Impact />
-          <h2>計測完了</h2>
-          <p>スコア {finalScore}</p>
-        </div>
-      )}
-    </div>
+    <PolyClapVisual
+      scene={scene}
+      timeLeft={timeLeft}
+      durationMs={DURATION_MS}
+      leadInMs={LEAD_IN_MS}
+      leftCombo={leftCombo}
+      rightCombo={rightCombo}
+      leftFlash={leftFlash}
+      rightFlash={rightFlash}
+      leftPhase={leftPhase}
+      rightPhase={rightPhase}
+      status={status}
+      finalScore={finalScore}
+      onLeftTap={() => handleTap('left')}
+      onRightTap={() => handleTap('right')}
+    />
   );
 }

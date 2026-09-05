@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import Hud from '../screens/Hud.jsx';
-import Impact from '../fx/Impact.jsx';
+import { usePeerLink } from '../engines/usePeerLink.jsx';
+import ControllerView from '../screens/ControllerView.jsx';
+import SmoothLiftVisual from './SmoothLiftVisual.jsx';
 
 const WINDOW_MS = 2600;
 const MIN_SAMPLES = 8;
@@ -12,6 +13,7 @@ const FALLBACK_TIMEOUT_MS = 400;
 // not how far — the motion is, via the average frame-to-frame change in
 // acceleration magnitude (jerk). Lower jerk = a controlled, deliberate move.
 export default function SmoothLift({ onFinish, scene }) {
+  const { connected, send } = usePeerLink();
   const [status, setStatus] = useState('playing');
   const [progress, setProgress] = useState(0);
   const [isFallback, setIsFallback] = useState(false);
@@ -67,7 +69,9 @@ export default function SmoothLift({ onFinish, scene }) {
 
     function tick(now) {
       const elapsed = now - start;
-      setProgress(Math.min(1, elapsed / WINDOW_MS));
+      const p = Math.min(1, elapsed / WINDOW_MS);
+      setProgress(p);
+      send({ type: 'smoothLift', scene, progress: p, status: elapsed >= WINDOW_MS ? 'done' : 'playing' });
 
       if (elapsed >= WINDOW_MS) {
         const samples = samplesRef.current;
@@ -94,28 +98,14 @@ export default function SmoothLift({ onFinish, scene }) {
       window.removeEventListener('pointermove', handlePointerMove);
       clearTimeout(fallbackTimer);
     };
-  }, [handleMotion, handlePointerMove, finish]);
+  }, [handleMotion, handlePointerMove, finish, scene, send]);
 
   const phase = progress < 0.5 ? '持ち上げて…' : 'おろして…';
-  const guideScale = 0.4 + (progress < 0.5 ? progress * 2 : 2 - progress * 2) * 0.9;
+  const hint = isFallback ? '指でゆっくりなぞって' : phase;
 
-  return (
-    <div className={`game-screen smooth-lift scene-${scene}`}>
-      <Hud items={[{ label: 'PHASE', value: progress < 0.5 ? 'UP' : 'DOWN' }]} />
+  if (connected) {
+    return <ControllerView scene={scene} message={status === 'playing' ? hint : `計測完了 ${finalScore}`} />;
+  }
 
-      <div className="lift-guide-wrap">
-        <div className="lift-guide-circle" style={{ transform: `scale(${guideScale})` }} />
-      </div>
-
-      {status === 'playing' && <p className="hint">{isFallback ? '指でゆっくりなぞって' : phase}</p>}
-
-      {status === 'done' && (
-        <div className="result-overlay">
-          <Impact />
-          <h2>計測完了</h2>
-          <p>なめらかさ {finalScore}</p>
-        </div>
-      )}
-    </div>
-  );
+  return <SmoothLiftVisual scene={scene} progress={progress} status={status} hint={hint} finalScore={finalScore} />;
 }

@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTilt } from '../engines/useTilt.jsx';
-import Hud from '../screens/Hud.jsx';
-import Impact from '../fx/Impact.jsx';
+import { usePeerLink } from '../engines/usePeerLink.jsx';
+import ControllerView from '../screens/ControllerView.jsx';
+import CompassAlignVisual from './CompassAlignVisual.jsx';
 
 const DURATION_MS = 10000;
 const GOOD_DEG = 18; // within this many degrees of target counts as "aligned"
@@ -14,6 +15,7 @@ function angularDiff(a, b) {
 
 export default function CompassAlign({ onFinish, scene }) {
   const { heading, isFallback } = useTilt();
+  const { connected, send } = usePeerLink();
   const headingRef = useRef(heading);
   useEffect(() => {
     headingRef.current = heading;
@@ -62,18 +64,32 @@ export default function CompassAlign({ onFinish, scene }) {
       setDiff(d);
       minDiffRef.current = Math.min(minDiffRef.current, d);
 
+      let cleared = false;
       if (d <= GOOD_DEG) {
         holdMs += dt;
         setHoldProgress(Math.min(1, holdMs / HOLD_TARGET_MS));
-        if (holdMs >= HOLD_TARGET_MS) {
-          finish(true, elapsed);
-          return;
-        }
+        if (holdMs >= HOLD_TARGET_MS) cleared = true;
       } else {
         holdMs = 0;
         setHoldProgress(0);
       }
 
+      send({
+        type: 'compassAlign',
+        scene,
+        timeLeft: remaining,
+        diff: d,
+        target,
+        heading: headingRef.current,
+        holdProgress: Math.min(1, holdMs / HOLD_TARGET_MS),
+        status: cleared ? 'cleared' : remaining <= 0 ? 'timeup' : 'playing',
+        finalMinDiff: minDiffRef.current,
+      });
+
+      if (cleared) {
+        finish(true, elapsed);
+        return;
+      }
       if (remaining <= 0) {
         finish(false, elapsed);
         return;
@@ -82,29 +98,30 @@ export default function CompassAlign({ onFinish, scene }) {
     }
 
     return () => cancelAnimationFrame(raf);
-  }, [finish, target]);
+  }, [finish, target, scene, send]);
+
+  const hint = isFallback ? '画面上でドラッグして回す' : 'スマホを水平に持って体ごと回す';
+
+  if (connected) {
+    return (
+      <ControllerView
+        scene={scene}
+        message={status === 'playing' ? hint : status === 'cleared' ? 'クリア!' : 'タイムアップ'}
+      />
+    );
+  }
 
   return (
-    <div className={`game-screen compass-align scene-${scene}`}>
-      <Hud items={[{ label: 'TIME', value: `${(timeLeft / 1000).toFixed(1)}s` }, { label: 'DIFF', value: `${Math.round(diff)}°` }]} />
-
-      <div className="compass-dial">
-        <div className="compass-target" style={{ transform: `rotate(${target}deg)` }} />
-        <div className="compass-needle" style={{ transform: `rotate(${heading}deg)` }} />
-        <div className="compass-hold-ring" style={{ '--progress': holdProgress }} />
-      </div>
-
-      {status === 'playing' && (
-        <p className="hint">{isFallback ? '画面上でドラッグして回す' : 'スマホを水平に持って体ごと回す'}</p>
-      )}
-
-      {status !== 'playing' && (
-        <div className="result-overlay">
-          {status === 'cleared' && <Impact />}
-          <h2>{status === 'cleared' ? 'クリア!' : 'タイムアップ'}</h2>
-          <p>最短誤差 {Math.round(finalMinDiff)}°</p>
-        </div>
-      )}
-    </div>
+    <CompassAlignVisual
+      scene={scene}
+      timeLeft={timeLeft}
+      diff={diff}
+      target={target}
+      heading={heading}
+      holdProgress={holdProgress}
+      status={status}
+      hint={hint}
+      finalMinDiff={finalMinDiff}
+    />
   );
 }

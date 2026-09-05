@@ -1,29 +1,22 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTilt } from '../engines/useTilt.jsx';
-import Hud from '../screens/Hud.jsx';
-import Impact from '../fx/Impact.jsx';
+import { usePeerLink } from '../engines/usePeerLink.jsx';
+import ControllerView from '../screens/ControllerView.jsx';
+import TiltMazeVisual, {
+  BALL_RADIUS,
+  GOAL,
+  GOAL_RADIUS,
+  LOGICAL_H,
+  LOGICAL_W,
+  START,
+  WALLS,
+  WALL_THICKNESS,
+} from './TiltMazeVisual.jsx';
 
 const DURATION_MS = 10000;
-const LOGICAL_W = 220;
-const LOGICAL_H = 420;
-const BALL_RADIUS = 10;
-const GOAL_RADIUS = 18;
 const ACCEL = 1100; // px/s^2 per unit of tilt magnitude
 const DAMPING_PER_SEC = 2.2; // higher = more friction
 const RESTITUTION = 0.4;
-const WALL_THICKNESS = 6;
-
-// A 2-wall zig-zag: wall A leaves a gap on the right, wall B leaves a gap on
-// the left, so the ball must weave right-then-left to reach the goal.
-// (The previous 4-wall layout left no gap at all in the second wall across
-// the region the ball was funneled into — the maze was unsolvable.)
-const WALLS = [
-  { x1: 0, y1: 150, x2: 160, y2: 150 },
-  { x1: 60, y1: 290, x2: 220, y2: 290 },
-];
-
-const START = { x: 30, y: 50 };
-const GOAL = { x: 40, y: 390 };
 
 function closestPointOnSegment(px, py, x1, y1, x2, y2) {
   const dx = x2 - x1;
@@ -36,15 +29,16 @@ function closestPointOnSegment(px, py, x1, y1, x2, y2) {
 
 export default function TiltMaze({ onFinish, scene }) {
   const { tilt, isFallback } = useTilt();
+  const { connected, send } = usePeerLink();
   const tiltRef = useRef(tilt);
   useEffect(() => {
     tiltRef.current = tilt;
   }, [tilt]);
 
-  const canvasRef = useRef(null);
   const ballRef = useRef({ x: START.x, y: START.y, vx: 0, vy: 0 });
   const finishedRef = useRef(false);
   const [timeLeft, setTimeLeft] = useState(DURATION_MS);
+  const [ball, setBall] = useState({ x: START.x, y: START.y });
   const [status, setStatus] = useState('playing');
 
   const finish = useCallback(
@@ -59,37 +53,26 @@ export default function TiltMaze({ onFinish, scene }) {
   );
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
     const start = performance.now();
     let last = start;
     let raf = requestAnimationFrame(tick);
 
-    const resize = () => {
-      const scale = window.devicePixelRatio || 1;
-      canvas.width = LOGICAL_W * scale;
-      canvas.height = LOGICAL_H * scale;
-      ctx.setTransform(scale, 0, 0, scale, 0, 0);
-    };
-    resize();
-    window.addEventListener('resize', resize);
-
-    function resolveWallCollisions(ball) {
+    function resolveWallCollisions(b) {
       for (const wall of WALLS) {
-        const closest = closestPointOnSegment(ball.x, ball.y, wall.x1, wall.y1, wall.x2, wall.y2);
-        const dx = ball.x - closest.x;
-        const dy = ball.y - closest.y;
+        const closest = closestPointOnSegment(b.x, b.y, wall.x1, wall.y1, wall.x2, wall.y2);
+        const dx = b.x - closest.x;
+        const dy = b.y - closest.y;
         const dist = Math.hypot(dx, dy) || 0.0001;
         const minDist = BALL_RADIUS + WALL_THICKNESS / 2;
         if (dist < minDist) {
           const nx = dx / dist;
           const ny = dy / dist;
-          ball.x = closest.x + nx * minDist;
-          ball.y = closest.y + ny * minDist;
-          const velAlongNormal = ball.vx * nx + ball.vy * ny;
+          b.x = closest.x + nx * minDist;
+          b.y = closest.y + ny * minDist;
+          const velAlongNormal = b.vx * nx + b.vy * ny;
           if (velAlongNormal < 0) {
-            ball.vx -= (1 + RESTITUTION) * velAlongNormal * nx;
-            ball.vy -= (1 + RESTITUTION) * velAlongNormal * ny;
+            b.vx -= (1 + RESTITUTION) * velAlongNormal * nx;
+            b.vy -= (1 + RESTITUTION) * velAlongNormal * ny;
           }
         }
       }
@@ -102,59 +85,45 @@ export default function TiltMaze({ onFinish, scene }) {
       const remaining = Math.max(0, DURATION_MS - elapsed);
       setTimeLeft(remaining);
 
-      const ball = ballRef.current;
+      const b = ballRef.current;
       const { x: tx, y: ty } = tiltRef.current;
-      ball.vx += tx * ACCEL * dt;
-      ball.vy += ty * ACCEL * dt;
+      b.vx += tx * ACCEL * dt;
+      b.vy += ty * ACCEL * dt;
       const damping = Math.max(0, 1 - DAMPING_PER_SEC * dt);
-      ball.vx *= damping;
-      ball.vy *= damping;
-      ball.x += ball.vx * dt;
-      ball.y += ball.vy * dt;
+      b.vx *= damping;
+      b.vy *= damping;
+      b.x += b.vx * dt;
+      b.y += b.vy * dt;
 
-      if (ball.x < BALL_RADIUS) {
-        ball.x = BALL_RADIUS;
-        ball.vx *= -RESTITUTION;
-      } else if (ball.x > LOGICAL_W - BALL_RADIUS) {
-        ball.x = LOGICAL_W - BALL_RADIUS;
-        ball.vx *= -RESTITUTION;
+      if (b.x < BALL_RADIUS) {
+        b.x = BALL_RADIUS;
+        b.vx *= -RESTITUTION;
+      } else if (b.x > LOGICAL_W - BALL_RADIUS) {
+        b.x = LOGICAL_W - BALL_RADIUS;
+        b.vx *= -RESTITUTION;
       }
-      if (ball.y < BALL_RADIUS) {
-        ball.y = BALL_RADIUS;
-        ball.vy *= -RESTITUTION;
-      } else if (ball.y > LOGICAL_H - BALL_RADIUS) {
-        ball.y = LOGICAL_H - BALL_RADIUS;
-        ball.vy *= -RESTITUTION;
-      }
-
-      resolveWallCollisions(ball);
-
-      ctx.clearRect(0, 0, LOGICAL_W, LOGICAL_H);
-
-      ctx.strokeStyle = 'rgba(23, 16, 43, 0.7)';
-      ctx.lineWidth = WALL_THICKNESS;
-      ctx.lineCap = 'round';
-      for (const wall of WALLS) {
-        ctx.beginPath();
-        ctx.moveTo(wall.x1, wall.y1);
-        ctx.lineTo(wall.x2, wall.y2);
-        ctx.stroke();
+      if (b.y < BALL_RADIUS) {
+        b.y = BALL_RADIUS;
+        b.vy *= -RESTITUTION;
+      } else if (b.y > LOGICAL_H - BALL_RADIUS) {
+        b.y = LOGICAL_H - BALL_RADIUS;
+        b.vy *= -RESTITUTION;
       }
 
-      ctx.fillStyle = 'rgba(31, 200, 163, 0.3)';
-      ctx.beginPath();
-      ctx.arc(GOAL.x, GOAL.y, GOAL_RADIUS, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = '#1FC8A3';
-      ctx.lineWidth = 2;
-      ctx.stroke();
+      resolveWallCollisions(b);
+      setBall({ x: b.x, y: b.y });
 
-      ctx.fillStyle = '#17102B';
-      ctx.beginPath();
-      ctx.arc(ball.x, ball.y, BALL_RADIUS, 0, Math.PI * 2);
-      ctx.fill();
+      const cleared = Math.hypot(b.x - GOAL.x, b.y - GOAL.y) < GOAL_RADIUS - BALL_RADIUS * 0.3;
+      send({
+        type: 'tiltMaze',
+        scene,
+        timeLeft: remaining,
+        ball: { x: b.x, y: b.y },
+        status: cleared ? 'cleared' : remaining <= 0 ? 'timeup' : 'playing',
+        durationMs: DURATION_MS,
+      });
 
-      if (Math.hypot(ball.x - GOAL.x, ball.y - GOAL.y) < GOAL_RADIUS - BALL_RADIUS * 0.3) {
+      if (cleared) {
         finish(true, elapsed);
         return;
       }
@@ -165,31 +134,21 @@ export default function TiltMaze({ onFinish, scene }) {
       raf = requestAnimationFrame(tick);
     }
 
-    return () => {
-      cancelAnimationFrame(raf);
-      window.removeEventListener('resize', resize);
-    };
-  }, [finish]);
+    return () => cancelAnimationFrame(raf);
+  }, [finish, scene, send]);
+
+  const hint = isFallback ? 'マウス/指で盤面を傾ける' : 'スマホを傾けてボールをゴールへ';
+
+  if (connected) {
+    return (
+      <ControllerView
+        scene={scene}
+        message={status === 'playing' ? hint : status === 'cleared' ? 'クリア!' : 'タイムアップ'}
+      />
+    );
+  }
 
   return (
-    <div className={`game-screen tilt-maze scene-${scene}`}>
-      <Hud items={[{ label: 'TIME', value: `${(timeLeft / 1000).toFixed(1)}s` }]} />
-
-      <div className="maze-frame">
-        <canvas ref={canvasRef} style={{ width: '100%', height: '100%' }} />
-      </div>
-
-      {status === 'playing' && (
-        <p className="hint">{isFallback ? 'マウス/指で盤面を傾ける' : 'スマホを傾けてボールをゴールへ'}</p>
-      )}
-
-      {status !== 'playing' && (
-        <div className="result-overlay">
-          {status === 'cleared' && <Impact />}
-          <h2>{status === 'cleared' ? 'クリア!' : 'タイムアップ'}</h2>
-          <p>経過 {((DURATION_MS - timeLeft) / 1000).toFixed(1)}秒</p>
-        </div>
-      )}
-    </div>
+    <TiltMazeVisual scene={scene} timeLeft={timeLeft} ball={ball} status={status} hint={hint} durationMs={DURATION_MS} />
   );
 }

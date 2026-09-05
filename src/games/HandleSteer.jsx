@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import Hud from '../screens/Hud.jsx';
-import Impact from '../fx/Impact.jsx';
+import { usePeerLink } from '../engines/usePeerLink.jsx';
+import HandleSteerVisual from './HandleSteerVisual.jsx';
 
 const DURATION_MS = 7000;
 const GOOD_DEG = 15;
@@ -14,6 +14,7 @@ function angularDiff(a, b) {
 // Two fingers grip the screen like a steering wheel; the angle between them,
 // measured relative to the angle at the moment of the grip, is the "turn."
 export default function HandleSteer({ onFinish, scene }) {
+  const { send } = usePeerLink();
   const [target] = useState(() => {
     const sign = Math.random() < 0.5 ? -1 : 1;
     return sign * (45 + Math.random() * 75);
@@ -99,6 +100,7 @@ export default function HandleSteer({ onFinish, scene }) {
       setGripped(grippedRef.current);
       setRotation(rotationRef.current);
 
+      let cleared = false;
       if (grippedRef.current) {
         const d = angularDiff(rotationRef.current, target);
         setDiff(d);
@@ -106,10 +108,7 @@ export default function HandleSteer({ onFinish, scene }) {
         if (d <= GOOD_DEG) {
           holdMs += dt;
           setHoldProgress(Math.min(1, holdMs / HOLD_TARGET_MS));
-          if (holdMs >= HOLD_TARGET_MS) {
-            finish(true, elapsed);
-            return;
-          }
+          if (holdMs >= HOLD_TARGET_MS) cleared = true;
         } else {
           holdMs = 0;
           setHoldProgress(0);
@@ -119,6 +118,23 @@ export default function HandleSteer({ onFinish, scene }) {
         setHoldProgress(0);
       }
 
+      send({
+        type: 'handleSteer',
+        scene,
+        timeLeft: remaining,
+        diff: grippedRef.current ? angularDiff(rotationRef.current, target) : 180,
+        target,
+        rotation: rotationRef.current,
+        holdProgress: Math.min(1, holdMs / HOLD_TARGET_MS),
+        gripped: grippedRef.current,
+        status: cleared ? 'cleared' : remaining <= 0 ? 'timeup' : 'playing',
+        finalDiff: minDiffRef.current,
+      });
+
+      if (cleared) {
+        finish(true, elapsed);
+        return;
+      }
       if (remaining <= 0) {
         finish(false, elapsed);
         return;
@@ -127,33 +143,23 @@ export default function HandleSteer({ onFinish, scene }) {
     }
 
     return () => cancelAnimationFrame(raf);
-  }, [finish, target]);
+  }, [finish, target, scene, send]);
 
   return (
-    <div
-      className={`game-screen handle-steer scene-${scene}`}
+    <HandleSteerVisual
+      scene={scene}
+      timeLeft={timeLeft}
+      diff={diff}
+      target={target}
+      rotation={rotation}
+      holdProgress={holdProgress}
+      gripped={gripped}
+      status={status}
+      finalDiff={finalDiff}
       onPointerDown={handleDown}
       onPointerMove={handleMove}
       onPointerUp={handleUp}
       onPointerCancel={handleUp}
-    >
-      <Hud items={[{ label: 'TIME', value: `${(timeLeft / 1000).toFixed(1)}s` }, { label: 'DIFF', value: `${Math.round(diff)}°` }]} />
-
-      <div className="compass-dial">
-        <div className="compass-target" style={{ transform: `rotate(${target}deg)` }} />
-        <div className="compass-needle" style={{ transform: `rotate(${rotation}deg)` }} />
-        <div className="compass-hold-ring" style={{ '--progress': holdProgress }} />
-      </div>
-
-      {status === 'playing' && <p className="hint">{gripped ? 'そのままひねって合わせろ' : '画面を両手の指2本でつかもう'}</p>}
-
-      {status !== 'playing' && (
-        <div className="result-overlay">
-          {status === 'cleared' && <Impact />}
-          <h2>{status === 'cleared' ? 'クリア!' : 'タイムアップ'}</h2>
-          <p>最短誤差 {Math.round(finalDiff)}°</p>
-        </div>
-      )}
-    </div>
+    />
   );
 }

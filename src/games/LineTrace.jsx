@@ -1,14 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import Hud from '../screens/Hud.jsx';
-import Impact from '../fx/Impact.jsx';
+import { usePeerLink } from '../engines/usePeerLink.jsx';
+import LineTraceVisual, { PATH_D } from './LineTraceVisual.jsx';
 
 const DURATION_MS = 8000;
-const PATH_D = 'M 30 40 C 30 150, 190 150, 190 260 C 190 350, 30 350, 30 390';
 const SAMPLE_COUNT = 120;
 const COMPLETE_TOLERANCE_PX = 40;
 
 export default function LineTrace({ onFinish, scene }) {
-  const svgRef = useRef(null);
+  const { send } = usePeerLink();
+  const frameRef = useRef(null);
   const pathRef = useRef(null);
   const samplesRef = useRef([]);
   const draggingRef = useRef(false);
@@ -37,6 +37,9 @@ export default function LineTrace({ onFinish, scene }) {
     [onFinish]
   );
 
+  // The visible path lives in LineTraceVisual (shared with the display), so
+  // sampling reads its length/points off an identical, invisible copy here
+  // instead of reaching into the rendered one.
   useEffect(() => {
     const total = pathRef.current.getTotalLength();
     const samples = [];
@@ -63,8 +66,12 @@ export default function LineTrace({ onFinish, scene }) {
     return () => cancelAnimationFrame(raf);
   }, [finish]);
 
+  useEffect(() => {
+    send({ type: 'lineTrace', scene, timeLeft, progress, cursor, status, markers });
+  }, [send, scene, timeLeft, progress, cursor, status, markers]);
+
   const toLocalPoint = useCallback((clientX, clientY) => {
-    const rect = svgRef.current.getBoundingClientRect();
+    const rect = frameRef.current.getBoundingClientRect();
     return {
       x: ((clientX - rect.left) / rect.width) * 220,
       y: ((clientY - rect.top) / rect.height) * 420,
@@ -124,51 +131,24 @@ export default function LineTrace({ onFinish, scene }) {
     };
   }, [registerPoint]);
 
+  const hint = progress > 0 ? 'そのままゴールまでなぞって' : '光る点(スタート)から指でなぞってね';
+
   return (
-    <div className={`game-screen line-trace scene-${scene}`}>
-      <Hud
-        items={[
-          { label: 'TIME', value: `${(timeLeft / 1000).toFixed(1)}s` },
-          { label: 'PROGRESS', value: `${Math.round(progress * 100)}%` },
-        ]}
+    <>
+      <svg style={{ display: 'none' }} aria-hidden="true">
+        <path ref={pathRef} d={PATH_D} />
+      </svg>
+      <LineTraceVisual
+        ref={frameRef}
+        scene={scene}
+        timeLeft={timeLeft}
+        progress={progress}
+        cursor={cursor}
+        status={status}
+        markers={markers}
+        hint={hint}
+        onPointerDown={handlePointerDown}
       />
-
-      <div className="trace-frame" onPointerDown={handlePointerDown}>
-        <svg ref={svgRef} viewBox="0 0 220 420" className="trace-svg">
-          <path ref={pathRef} d={PATH_D} className="trace-path-bg" />
-          <path
-            d={PATH_D}
-            className="trace-path-progress"
-            pathLength={1}
-            style={{ strokeDasharray: 1, strokeDashoffset: 1 - progress }}
-          />
-          {markers && (
-            <>
-              <circle cx={markers.end.x} cy={markers.end.y} r={10} className="trace-goal-dot" />
-              <g
-                className="trace-start-marker"
-                style={{ opacity: progress > 0.03 ? 0.15 : 1, transition: 'opacity 0.3s ease' }}
-              >
-                <circle cx={markers.start.x} cy={markers.start.y} r={9} className="trace-start-ring" />
-                <circle cx={markers.start.x} cy={markers.start.y} r={7} className="trace-start-dot" />
-              </g>
-            </>
-          )}
-          {cursor && <circle cx={cursor.x} cy={cursor.y} r={7} className="trace-cursor" />}
-        </svg>
-      </div>
-
-      {status === 'playing' && (
-        <p className="hint">{progress > 0 ? 'そのままゴールまでなぞって' : '光る点(スタート)から指でなぞってね'}</p>
-      )}
-
-      {status !== 'playing' && (
-        <div className="result-overlay">
-          {status === 'cleared' && <Impact />}
-          <h2>{status === 'cleared' ? 'クリア!' : 'タイムアップ'}</h2>
-          <p>到達 {Math.round(progress * 100)}%</p>
-        </div>
-      )}
-    </div>
+    </>
   );
 }
