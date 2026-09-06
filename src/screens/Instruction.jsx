@@ -1,7 +1,7 @@
 // Shown for a beat before each game: a big verb + one-line explanation, like
 // an arcade "READY?" card, so the player knows what body motion to use
 // before the timer starts.
-export default function Instruction({ game, index, total, scene, onStart }) {
+export default function Instruction({ game, index, total, scene, onStart, buttonLabel = 'はじめる' }) {
   return (
     <div className={`screen instruction-screen scene-${scene}`}>
       <p className="eyebrow">
@@ -10,7 +10,7 @@ export default function Instruction({ game, index, total, scene, onStart }) {
       <p className="instruction-verb">{game.verb}</p>
       <p className="lead">{game.instruction}</p>
       <button className="primary-button" onClick={onStart}>
-        はじめる
+        {buttonLabel}
       </button>
     </div>
   );

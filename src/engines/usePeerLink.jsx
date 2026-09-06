@@ -27,6 +27,7 @@ function usePeerLinkState() {
   const [connected, setConnected] = useState(false);
   const [latestState, setLatestState] = useState(null);
   const [mySlot, setMySlot] = useState(null);
+  const [hostMessage, setHostMessage] = useState(null);
   const [peerStates, setPeerStates] = useState({ A: null, B: null });
   const [connectedSlots, setConnectedSlots] = useState({ A: false, B: false });
 
@@ -43,7 +44,11 @@ function usePeerLinkState() {
         setMySlot(data.slot);
         return;
       }
-      setLatestState(data);
+      // Everything else the host sends down (e.g. "both players are ready,
+      // go") is app-level, not game state a phone would ever mirror itself
+      // — kept separate from `latestState` so it stays unambiguous which
+      // channel a given message came in on.
+      setHostMessage(data);
     });
     conn.on('close', () => {
       setConnected(false);
@@ -129,9 +134,39 @@ function usePeerLinkState() {
     [wireClientConnection, wireLifecycle]
   );
 
+  // Lets a phone walk away from a finished duo session and become a fresh,
+  // unpaired peer again — without this, `joinRoom`'s "already have a peer"
+  // guard would refuse to ever connect that phone to anything again for the
+  // rest of the page's life, and the host would keep this player's slot
+  // occupied forever.
+  const leaveRoom = useCallback(() => {
+    peerRef.current?.destroy();
+    peerRef.current = null;
+    connRef.current = null;
+    hostConnsRef.current.clear();
+    slotsTakenRef.current = { A: false, B: false };
+    setRole('idle');
+    setRoomId(null);
+    setConnected(false);
+    setLatestState(null);
+    setMySlot(null);
+    setHostMessage(null);
+    setPeerStates({ A: null, B: null });
+    setConnectedSlots({ A: false, B: false });
+  }, []);
+
   const send = useCallback((data) => {
     if (connRef.current?.open) {
       connRef.current.send(data);
+    }
+  }, []);
+
+  // Host-only: the reverse direction of `send` — e.g. telling both duo
+  // players "you're both ready, go" the instant the second one confirms,
+  // since neither phone can otherwise know what the other is doing.
+  const broadcast = useCallback((data) => {
+    for (const { conn } of hostConnsRef.current.values()) {
+      if (conn.open) conn.send(data);
     }
   }, []);
 
@@ -158,11 +193,14 @@ function usePeerLinkState() {
     connected,
     latestState,
     mySlot,
+    hostMessage,
     peerStates,
     connectedSlots,
     hostRoom,
     joinRoom,
+    leaveRoom,
     send,
+    broadcast,
   };
 }
 

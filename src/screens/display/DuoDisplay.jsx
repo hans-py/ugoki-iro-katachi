@@ -12,10 +12,16 @@ function DuoPanel({ label, connected, state }) {
   }
   const ActiveView = state && DISPLAY_VIEWS[state.type];
   if (!ActiveView) {
+    const hint =
+      state?.type === 'duoReady'
+        ? 'じゅんび完了、あいてを待っています'
+        : state?.type === 'duoResult'
+          ? 'けっか発表を待っています…'
+          : 'まもなくスタート…';
     return (
       <div className="duo-waiting">
         <p className="eyebrow">{label}</p>
-        <p className="hint">まもなくスタート…</p>
+        <p className="hint">{hint}</p>
       </div>
     );
   }

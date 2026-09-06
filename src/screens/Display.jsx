@@ -12,7 +12,7 @@ import DuoDisplay from './display/DuoDisplay.jsx';
 // of this room's life — even if one player's connection later hiccups, the
 // display shouldn't flicker back to the single-player layout mid-match.
 export default function Display() {
-  const { hostRoom, roomId, connected, latestState, peerStates, connectedSlots } = usePeerLink();
+  const { hostRoom, roomId, connected, latestState, peerStates, connectedSlots, broadcast } = usePeerLink();
   const [isDuo, setIsDuo] = useState(false);
 
   useEffect(() => {
@@ -22,6 +22,25 @@ export default function Display() {
   useEffect(() => {
     if (connectedSlots.B) setIsDuo(true);
   }, [connectedSlots.B]);
+
+  // Once the match is over and both players have walked away (each phone
+  // calls leaveRoom() after showing its own result), this room is free for
+  // a completely fresh pair — go back to the plain idle/QR screen instead
+  // of staying stuck on stale split-screen state forever.
+  useEffect(() => {
+    if (isDuo && !connectedSlots.A && !connectedSlots.B) setIsDuo(false);
+  }, [isDuo, connectedSlots.A, connectedSlots.B]);
+
+  // Neither phone can see the other's "ready" tap directly — only the host
+  // they're both connected to can. The instant both report ready, tell both
+  // to go at once. A harmless no-op to re-fire if this ever runs again
+  // while both happen to still read 'duoReady' (the client ignores a
+  // duoStart it isn't waiting for).
+  useEffect(() => {
+    if (peerStates.A?.type === 'duoReady' && peerStates.B?.type === 'duoReady') {
+      broadcast({ type: 'duoStart' });
+    }
+  }, [peerStates.A, peerStates.B, broadcast]);
 
   if (isDuo) {
     return <DuoDisplay peerStates={peerStates} connectedSlots={connectedSlots} />;
