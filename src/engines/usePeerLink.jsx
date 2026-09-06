@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import Peer from 'peerjs';
 
-// Connects a phone (controller) to the exhibit monitor (display) directly
+// Connects phones (controllers) to the exhibit monitor (display) directly
 // over WebRTC — no backend of our own, just PeerJS's free public signalling
 // server to find each other. On the same venue Wi-Fi this stays low-latency
 // enough for the display to mirror a game's motion smoothly.
@@ -11,23 +11,75 @@ import Peer from 'peerjs';
 // "sending" game state calls send(data); the other side reads it from
 // `latestState`. One instance of this context is shared by the whole app via
 // <PeerLinkProvider>, mirroring the useTilt/useShake pattern.
+//
+// A room now accepts up to two phones at once (for 二人で遊ぶ) — the host
+// assigns whichever connects first slot 'A' and a second one slot 'B',
+// tracked in `peerStates`/`connectedSlots`. Solo play only ever fills slot
+// A, so `latestState`/`connected` mirror slot A exactly as before — existing
+// solo-only code (Display's idle/QR branch, every game's `send()` call)
+// keeps working unmodified.
 const ROOM_PREFIX = 'ugokiiro-';
+const SLOT_MSG = '__peerlink_slot__';
 
 function usePeerLinkState() {
   const [role, setRole] = useState('idle'); // 'idle' | 'host' | 'client'
   const [roomId, setRoomId] = useState(null);
   const [connected, setConnected] = useState(false);
   const [latestState, setLatestState] = useState(null);
-  const peerRef = useRef(null);
-  const connRef = useRef(null);
+  const [mySlot, setMySlot] = useState(null);
+  const [peerStates, setPeerStates] = useState({ A: null, B: null });
+  const [connectedSlots, setConnectedSlots] = useState({ A: false, B: false });
 
-  const wireConnection = useCallback((conn) => {
+  const peerRef = useRef(null);
+  const connRef = useRef(null); // client's own single connection to the host
+  const hostConnsRef = useRef(new Map()); // host: peerId -> { conn, slot }
+  const slotsTakenRef = useRef({ A: false, B: false });
+
+  const wireClientConnection = useCallback((conn) => {
     connRef.current = conn;
     conn.on('open', () => setConnected(true));
-    conn.on('data', (data) => setLatestState(data));
+    conn.on('data', (data) => {
+      if (data && data.__peerLink === SLOT_MSG) {
+        setMySlot(data.slot);
+        return;
+      }
+      setLatestState(data);
+    });
     conn.on('close', () => {
       setConnected(false);
       connRef.current = null;
+    });
+  }, []);
+
+  const wireHostConnection = useCallback((conn) => {
+    let slot = null;
+    if (!slotsTakenRef.current.A) slot = 'A';
+    else if (!slotsTakenRef.current.B) slot = 'B';
+    if (!slot) {
+      // Room already has two players — a third scan is politely refused
+      // rather than silently overwriting one of the active slots.
+      conn.on('open', () => conn.close());
+      return;
+    }
+    slotsTakenRef.current[slot] = true;
+    hostConnsRef.current.set(conn.peer, { conn, slot });
+
+    conn.on('open', () => {
+      setConnectedSlots((prev) => ({ ...prev, [slot]: true }));
+      setConnected(true);
+      conn.send({ __peerLink: SLOT_MSG, slot });
+    });
+    conn.on('data', (data) => {
+      setPeerStates((prev) => ({ ...prev, [slot]: data }));
+      if (slot === 'A') setLatestState(data);
+    });
+    conn.on('close', () => {
+      hostConnsRef.current.delete(conn.peer);
+      slotsTakenRef.current[slot] = false;
+      setConnectedSlots((prev) => ({ ...prev, [slot]: false }));
+      setPeerStates((prev) => ({ ...prev, [slot]: null }));
+      if (slot === 'A') setLatestState(null);
+      setConnected(hostConnsRef.current.size > 0);
     });
   }, []);
 
@@ -57,9 +109,9 @@ function usePeerLinkState() {
     peerRef.current = peer;
     setRole('host');
     peer.on('open', () => setRoomId(code));
-    peer.on('connection', wireConnection);
+    peer.on('connection', wireHostConnection);
     wireLifecycle(peer);
-  }, [wireConnection, wireLifecycle]);
+  }, [wireHostConnection, wireLifecycle]);
 
   const joinRoom = useCallback(
     (code) => {
@@ -67,13 +119,14 @@ function usePeerLinkState() {
       const peer = new Peer();
       peerRef.current = peer;
       setRole('client');
+      setRoomId(code);
       peer.on('open', () => {
         const conn = peer.connect(`${ROOM_PREFIX}${code}`);
-        wireConnection(conn);
+        wireClientConnection(conn);
       });
       wireLifecycle(peer);
     },
-    [wireConnection, wireLifecycle]
+    [wireClientConnection, wireLifecycle]
   );
 
   const send = useCallback((data) => {
@@ -93,11 +146,24 @@ function usePeerLinkState() {
       peerRef.current?.destroy();
       peerRef.current = null;
       connRef.current = null;
+      hostConnsRef.current.clear();
+      slotsTakenRef.current = { A: false, B: false };
     },
     []
   );
 
-  return { role, roomId, connected, latestState, hostRoom, joinRoom, send };
+  return {
+    role,
+    roomId,
+    connected,
+    latestState,
+    mySlot,
+    peerStates,
+    connectedSlots,
+    hostRoom,
+    joinRoom,
+    send,
+  };
 }
 
 const PeerLinkContext = createContext(null);

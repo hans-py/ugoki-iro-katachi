@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import jsQR from 'jsqr';
 import { usePeerLink } from '../engines/usePeerLink.jsx';
 
@@ -24,6 +24,8 @@ function extractRoomCode(text) {
 // scanning whatever room code is live right now.
 export default function ScanQr() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const duoMode = searchParams.get('duo'); // 'battle' | 'match' | null (solo)
   const { connected, joinRoom } = usePeerLink();
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
@@ -90,8 +92,8 @@ export default function ScanQr() {
   }, []);
 
   useEffect(() => {
-    if (connected) navigate('/play');
-  }, [connected, navigate]);
+    if (connected) navigate(duoMode ? `/duo-play?mode=${duoMode}` : '/play');
+  }, [connected, navigate, duoMode]);
 
   const handleManualSubmit = (e) => {
     e.preventDefault();

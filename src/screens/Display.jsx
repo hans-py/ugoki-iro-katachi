@@ -1,48 +1,31 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { usePeerLink } from '../engines/usePeerLink.jsx';
 import QrCode from '../fx/QrCode.jsx';
-import TiltFillView from '../games/display/TiltFillView.jsx';
-import TiltMazeView from '../games/display/TiltMazeView.jsx';
-import ShakeGaugeView from '../games/display/ShakeGaugeView.jsx';
-import CompassAlignView from '../games/display/CompassAlignView.jsx';
-import SmoothLiftView from '../games/display/SmoothLiftView.jsx';
-import TimingCenterView from '../games/display/TimingCenterView.jsx';
-import TimingRhythmView from '../games/display/TimingRhythmView.jsx';
-import HoldStopView from '../games/display/HoldStopView.jsx';
-import FlickSpeedView from '../games/display/FlickSpeedView.jsx';
-import HandleSteerView from '../games/display/HandleSteerView.jsx';
-import LineTraceView from '../games/display/LineTraceView.jsx';
-import PolyClapView from '../games/display/PolyClapView.jsx';
-import ResultView from './display/ResultView.jsx';
-
-// Games that know how to render themselves on the display from a phone's
-// broadcast state.
-const DISPLAY_VIEWS = {
-  tiltFill: TiltFillView,
-  tiltMaze: TiltMazeView,
-  shakeGauge: ShakeGaugeView,
-  compassAlign: CompassAlignView,
-  smoothLift: SmoothLiftView,
-  timingCenter: TimingCenterView,
-  timingRhythm: TimingRhythmView,
-  holdStop: HoldStopView,
-  flickSpeed: FlickSpeedView,
-  handleSteer: HandleSteerView,
-  lineTrace: LineTraceView,
-  polyClap: PolyClapView,
-  result: ResultView,
-};
+import { DISPLAY_VIEWS } from '../games/gameRegistry.js';
+import DuoDisplay from './display/DuoDisplay.jsx';
 
 // The exhibit monitor screen. Idle, it plays on its own loop (see
 // .scene-cycle / .display-ambient in index.css) with a QR code for pairing.
 // Once a phone connects and starts sending game state, it switches to
-// mirroring that phone's game live instead.
+// mirroring that phone's game live instead. If a *second* phone joins (二人
+// で遊ぶ), it switches again to a permanent split-screen layout for the rest
+// of this room's life — even if one player's connection later hiccups, the
+// display shouldn't flicker back to the single-player layout mid-match.
 export default function Display() {
-  const { hostRoom, roomId, connected, latestState } = usePeerLink();
+  const { hostRoom, roomId, connected, latestState, peerStates, connectedSlots } = usePeerLink();
+  const [isDuo, setIsDuo] = useState(false);
 
   useEffect(() => {
     hostRoom();
   }, [hostRoom]);
+
+  useEffect(() => {
+    if (connectedSlots.B) setIsDuo(true);
+  }, [connectedSlots.B]);
+
+  if (isDuo) {
+    return <DuoDisplay peerStates={peerStates} connectedSlots={connectedSlots} />;
+  }
 
   const ActiveView = latestState && DISPLAY_VIEWS[latestState.type];
 

@@ -4,45 +4,14 @@ import { TiltProvider } from './engines/useTilt.jsx';
 import { ShakeProvider } from './engines/useShake.jsx';
 import { PeerLinkProvider, usePeerLink } from './engines/usePeerLink.jsx';
 import { pickRandomGames } from './data/titles.js';
+import { GAME_COMPONENTS, SCENES } from './games/gameRegistry.js';
 import Start from './screens/Start.jsx';
 import ScanQr from './screens/ScanQr.jsx';
 import Result from './screens/Result.jsx';
 import Display from './screens/Display.jsx';
 import Instruction from './screens/Instruction.jsx';
 import GoFlash from './screens/GoFlash.jsx';
-import TiltFill from './games/TiltFill.jsx';
-import TiltMaze from './games/TiltMaze.jsx';
-import TimingCenter from './games/TimingCenter.jsx';
-import TimingRhythm from './games/TimingRhythm.jsx';
-import ShakeGauge from './games/ShakeGauge.jsx';
-import CompassAlign from './games/CompassAlign.jsx';
-import HoldStop from './games/HoldStop.jsx';
-import LineTrace from './games/LineTrace.jsx';
-import FlickSpeed from './games/FlickSpeed.jsx';
-import HandleSteer from './games/HandleSteer.jsx';
-import PolyClap from './games/PolyClap.jsx';
-import SmoothLift from './games/SmoothLift.jsx';
-
-// The four vivid "scene" backgrounds, cycled by playlist position so
-// consecutive rounds read like cuts between scenes in a motion-graphics
-// reel — instruction card, GO flash and the game itself all share one
-// scene's color for continuity.
-const SCENES = ['coral', 'cobalt', 'grass', 'magenta'];
-
-const GAME_COMPONENTS = {
-  tiltFill: TiltFill,
-  tiltMaze: TiltMaze,
-  timingCenter: TimingCenter,
-  timingRhythm: TimingRhythm,
-  shakeGauge: ShakeGauge,
-  compassAlign: CompassAlign,
-  holdStop: HoldStop,
-  lineTrace: LineTrace,
-  flickSpeed: FlickSpeed,
-  handleSteer: HandleSteer,
-  polyClap: PolyClap,
-  smoothLift: SmoothLift,
-};
+import DuoPlayRunner from './screens/DuoPlayRunner.jsx';
 
 // Plays a random 5-game playlist (drawn once per run from the full pool),
 // then hands the collected scores to /result. A fresh `key` per game forces
@@ -120,6 +89,7 @@ function App() {
               <Route path="/" element={<Start />} />
               <Route path="/scan" element={<ScanQr />} />
               <Route path="/play" element={<GameRunner />} />
+              <Route path="/duo-play" element={<DuoPlayRunner />} />
               <Route path="/result" element={<Result />} />
               <Route path="/display" element={<Display />} />
             </Routes>

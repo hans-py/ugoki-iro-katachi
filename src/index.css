@@ -1424,3 +1424,79 @@ body {
   margin: 0;
   animation: verb-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
+
+/*
+  二人で遊ぶ (duo) display: once a second phone joins, the whole exhibit
+  screen splits in half and stays split for the rest of the room's life.
+  Each half mirrors one player's phone using the exact same DISPLAY_VIEWS
+  components solo play already renders full-screen — .duo-panel-stage keeps
+  every game's own `.screen` (built assuming it owns the whole viewport)
+  centered and clipped to just its half, scaled up a bit since a half-width
+  slice of a 1920px display still dwarfs a phone-tuned layout.
+*/
+.duo-display {
+  position: relative;
+  height: 100dvh;
+  width: 100vw;
+  display: flex;
+  overflow: hidden;
+}
+
+.duo-panel {
+  position: relative;
+  flex: 1;
+  height: 100%;
+  overflow: hidden;
+}
+
+.duo-panel-divider {
+  width: 3px;
+  flex-shrink: 0;
+  background: rgba(23, 16, 43, 0.18);
+}
+
+.duo-panel-stage {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100vw;
+  height: 100dvh;
+  transform: translate(-50%, -50%) scale(1.4);
+}
+
+.duo-waiting {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  text-align: center;
+  padding: var(--space-3);
+}
+
+.duo-waiting .eyebrow {
+  letter-spacing: 0.3em;
+}
+
+.duo-result-screen .result-title {
+  font-size: clamp(2.2rem, 5vw, 4rem);
+}
+
+.duo-result-columns {
+  position: relative;
+  display: flex;
+  gap: var(--space-4);
+  margin-top: var(--space-2);
+}
+
+.duo-result-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.duo-result-column .score-breakdown {
+  width: min(30vw, 320px);
+}

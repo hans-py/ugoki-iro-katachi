@@ -87,6 +87,39 @@ export function pickRandomGames() {
   return shuffled.slice(0, RANDOM_PICK_COUNT);
 }
 
+// mulberry32 — a tiny seedable PRNG (Math.random has no seed hook). 二人で
+// 遊ぶ needs both phones to land on the exact same 5-game playlist without
+// either one telling the other its choice, so both derive it from the one
+// thing they already share: the room code they both joined.
+function mulberry32(seed) {
+  let a = seed;
+  return function () {
+    a |= 0;
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function hashString(str) {
+  let h = 0;
+  for (let i = 0; i < str.length; i += 1) {
+    h = (Math.imul(31, h) + str.charCodeAt(i)) | 0;
+  }
+  return h;
+}
+
+export function pickRandomGamesSeeded(seed) {
+  const rand = mulberry32(hashString(String(seed)));
+  const shuffled = [...GAMES];
+  for (let i = shuffled.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(rand() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled.slice(0, RANDOM_PICK_COUNT);
+}
+
 const TITLE_TABLE = [
   { max: 150, label: '動きのたまご' },
   { max: 300, label: '動きのみならい' },
@@ -96,4 +129,15 @@ const TITLE_TABLE = [
 
 export function getTitle(total) {
   return (TITLE_TABLE.find((t) => total <= t.max) ?? TITLE_TABLE[TITLE_TABLE.length - 1]).label;
+}
+
+const MATCH_TABLE = [
+  { min: 85, label: '運命のふたり' },
+  { min: 65, label: 'いい相性' },
+  { min: 40, label: 'ぼちぼち相性' },
+  { min: 0, label: 'まだまだこれから' },
+];
+
+export function getMatchLabel(percent) {
+  return (MATCH_TABLE.find((t) => percent >= t.min) ?? MATCH_TABLE[MATCH_TABLE.length - 1]).label;
 }

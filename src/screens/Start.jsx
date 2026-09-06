@@ -12,21 +12,30 @@ export default function Start() {
   const { requestPermission: requestShakePermission } = useShake();
   const { connected } = usePeerLink();
   const [starting, setStarting] = useState(false);
-  const [showComingSoon, setShowComingSoon] = useState(false);
+  const [showDuoSelect, setShowDuoSelect] = useState(false);
+
+  const preparePlayer = async () => {
+    // All three calls must originate from a click handler — iOS requires
+    // both permission prompts and the AudioContext resume to happen inside a
+    // user gesture, not after an awaited step that isn't itself a gesture.
+    await Promise.all([requestTiltPermission(), requestShakePermission(), initAudio()]);
+  };
 
   const handleSoloPlay = async () => {
     if (starting) return;
     setStarting(true);
-    // All three calls must originate from this click handler — iOS requires
-    // both permission prompts and the AudioContext resume to happen inside a
-    // user gesture, not after an awaited step that isn't itself a gesture.
-    await Promise.all([requestTiltPermission(), requestShakePermission(), initAudio()]);
+    await preparePlayer();
     // Arriving via the display's shared link (?room=) already pairs the
     // phone before Start ever renders — no need to scan a second time.
     navigate(connected ? '/play' : '/scan');
   };
 
-  const handleDuoPlay = () => setShowComingSoon(true);
+  const handleDuoMode = async (mode) => {
+    if (starting) return;
+    setStarting(true);
+    await preparePlayer();
+    navigate(connected ? `/duo-play?mode=${mode}` : `/scan?duo=${mode}`);
+  };
 
   return (
     <div className="screen start-screen scene-coral">
@@ -36,15 +45,32 @@ export default function Start() {
       <p className="eyebrow">motion mini games</p>
       <h1>うごき、いろ、かたち。</h1>
       <p className="lead">傾ける、狙う、刻む、揺する。</p>
-      <div className="mode-select">
-        <button className="primary-button" onClick={handleSoloPlay} disabled={starting}>
-          {starting ? '準備中…' : '一人で遊ぶ'}
-        </button>
-        <button className="secondary-button" onClick={handleDuoPlay} disabled={starting}>
-          二人で遊ぶ
-        </button>
-      </div>
-      {showComingSoon && <p className="hint">二人で遊ぶモードは近日公開です</p>}
+
+      {!showDuoSelect && (
+        <div className="mode-select">
+          <button className="primary-button" onClick={handleSoloPlay} disabled={starting}>
+            {starting ? '準備中…' : '一人で遊ぶ'}
+          </button>
+          <button className="secondary-button" onClick={() => setShowDuoSelect(true)} disabled={starting}>
+            二人で遊ぶ
+          </button>
+        </div>
+      )}
+
+      {showDuoSelect && (
+        <div className="mode-select">
+          <button className="primary-button" onClick={() => handleDuoMode('battle')} disabled={starting}>
+            {starting ? '準備中…' : '対戦する'}
+          </button>
+          <button className="primary-button" onClick={() => handleDuoMode('match')} disabled={starting}>
+            {starting ? '準備中…' : 'マッチ度診断'}
+          </button>
+          <button className="secondary-button" onClick={() => setShowDuoSelect(false)} disabled={starting}>
+            もどる
+          </button>
+          <p className="hint">二人ともスマホを1台ずつ用意して、同じディスプレイのQRを読み取ってね</p>
+        </div>
+      )}
     </div>
   );
 }
