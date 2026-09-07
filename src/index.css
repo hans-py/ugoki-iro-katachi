@@ -160,6 +160,7 @@ body {
 }
 
 .secondary-button {
+  position: relative;
   font-family: var(--font-body);
   font-weight: 700;
   font-size: 1rem;
@@ -192,6 +193,7 @@ body {
 
 .scan-screen {
   gap: var(--space-2);
+  animation: scene-breathe 3.2s ease-in-out infinite;
 }
 
 .scan-viewport {
@@ -333,6 +335,7 @@ body {
 }
 
 .hint {
+  position: relative;
   color: var(--ink);
   opacity: 0.75;
   font-size: 0.95rem;
@@ -569,10 +572,25 @@ body {
   color: var(--ink);
   opacity: 0.7;
   font-size: 0.9rem;
+  animation: score-row-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .score-breakdown li:last-child {
   border-bottom: none;
+}
+
+/* A one-by-one reveal instead of the whole list appearing at once — the
+   kind of small editorial-cut timing a real motion-graphics piece would
+   use for a results screen. */
+.score-breakdown li:nth-child(1) { animation-delay: 0.15s; }
+.score-breakdown li:nth-child(2) { animation-delay: 0.24s; }
+.score-breakdown li:nth-child(3) { animation-delay: 0.33s; }
+.score-breakdown li:nth-child(4) { animation-delay: 0.42s; }
+.score-breakdown li:nth-child(5) { animation-delay: 0.51s; }
+
+@keyframes score-row-in {
+  from { opacity: 0; transform: translateX(-12px); }
+  to { opacity: 0.7; transform: translateX(0); }
 }
 
 .score-breakdown .hud-value {
@@ -614,8 +632,9 @@ body {
 }
 
 .instruction-verb {
+  position: relative;
   font-family: var(--font-display);
-  font-size: clamp(3rem, 18vw, 5rem);
+  font-size: clamp(3.2rem, 20vw, 5.4rem);
   color: var(--ink);
   margin: 0 0 var(--space-2);
   text-wrap: balance;
@@ -623,16 +642,41 @@ body {
 }
 
 @keyframes verb-in {
-  from { transform: translateY(24px) scale(0.85); opacity: 0; }
-  to { transform: translateY(0) scale(1); opacity: 1; }
+  from { transform: translateY(24px) scale(0.85) rotate(-3deg); opacity: 0; }
+  to { transform: translateY(0) scale(1) rotate(0deg); opacity: 1; }
 }
 
 .instruction-screen .lead {
+  position: relative;
   max-width: 26em;
   line-height: 1.8;
   color: var(--ink);
   opacity: 0.75;
   margin: 0 0 var(--space-4);
+}
+
+/*
+  The "calm" beat between rounds — a slow ambient drift plus a barely-there
+  background breathe, deliberately understated so it contrasts with GO!'s
+  hard punch and the game's own instant judge-flashes. Reuses the exact
+  .ambient-shape vocabulary Display's idle loop already established instead
+  of inventing a second decoration language.
+*/
+.instruction-screen {
+  animation: scene-breathe 3.2s ease-in-out infinite;
+}
+
+@keyframes scene-breathe {
+  0%, 100% { filter: brightness(1) saturate(1); }
+  50% { filter: brightness(1.05) saturate(1.08); }
+}
+
+.phone-ambient {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
 }
 
 .rhythm-target-wrap {
@@ -944,14 +988,29 @@ body {
 }
 
 .go-flash-screen {
+  position: relative;
   height: 100dvh;
   width: 100vw;
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
+}
+
+.go-flash-frame {
+  position: absolute;
+  inset: 0;
+  background: var(--surface);
+  animation: go-flash-frame-fade 0.25s ease-out forwards;
+}
+
+@keyframes go-flash-frame-fade {
+  0% { opacity: 0.85; }
+  100% { opacity: 0; }
 }
 
 .go-flash-text {
+  position: relative;
   font-family: var(--font-display);
   font-size: clamp(3.5rem, 20vw, 6rem);
   color: var(--ink);
@@ -1404,6 +1463,7 @@ body {
 */
 .controller-view {
   gap: var(--space-2);
+  animation: scene-breathe 3.2s ease-in-out infinite;
 }
 
 .room-code {
@@ -1417,6 +1477,7 @@ body {
 }
 
 .controller-message {
+  position: relative;
   font-family: var(--font-display);
   font-size: clamp(2rem, 12vw, 3.2rem);
   color: var(--ink);

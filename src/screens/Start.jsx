@@ -39,6 +39,11 @@ export default function Start() {
 
   return (
     <div className="screen start-screen scene-coral">
+      <div className="phone-ambient">
+        <span className="ambient-shape ambient-tri ambient-tri-2" />
+        <span className="ambient-shape ambient-circle" />
+        <span className="ambient-shape ambient-square" />
+      </div>
       <div className="particles-layer">
         <Particles mode="idle" color="#FFF6E9" />
       </div>

@@ -81,6 +81,12 @@ export default function DuoPlayRunner() {
   if (phase === 'waitingPartner') {
     return (
       <div className={`screen instruction-screen scene-${scene}`}>
+        <div className="phone-ambient">
+          <span className="ambient-shape ambient-tri" />
+          <span className="ambient-shape ambient-circle" />
+          <span className="ambient-shape ambient-bar" />
+          <span className="ambient-shape ambient-square ambient-square-2" />
+        </div>
         <p className="eyebrow">
           GAME {index + 1} / {playlist.length}
         </p>
