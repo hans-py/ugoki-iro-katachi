@@ -12,6 +12,7 @@ export default function Instruction({ game, index, total, scene, onStart, button
         <span className="ambient-shape ambient-circle" />
         <span className="ambient-shape ambient-bar" />
         <span className="ambient-shape ambient-square ambient-square-2" />
+        <span className="ambient-shape ambient-circle ambient-circle-2" />
       </div>
       <p className="eyebrow">
         GAME {index + 1} / {total}

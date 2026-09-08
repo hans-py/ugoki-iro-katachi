@@ -43,6 +43,7 @@ export default function Start() {
         <span className="ambient-shape ambient-tri ambient-tri-2" />
         <span className="ambient-shape ambient-circle" />
         <span className="ambient-shape ambient-square" />
+        <span className="ambient-shape ambient-bar ambient-bar-2" />
       </div>
       <div className="particles-layer">
         <Particles mode="idle" color="#FFF6E9" />

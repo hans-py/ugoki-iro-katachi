@@ -106,6 +106,7 @@ export default function ScanQr() {
       <div className="phone-ambient">
         <span className="ambient-shape ambient-square" />
         <span className="ambient-shape ambient-tri ambient-tri-2" />
+        <span className="ambient-shape ambient-circle" />
       </div>
       <p className="eyebrow">ディスプレイのQRを読み取ってください</p>
       <div className="scan-viewport">
