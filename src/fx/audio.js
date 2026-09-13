@@ -33,6 +33,43 @@ export function playChime() {
   chimeSynth.triggerAttackRelease(['C5', 'E5', 'G5'], '8n');
 }
 
+let motionSynth;
+
+function ensureMotionSynth() {
+  if (!motionSynth) {
+    motionSynth = new Tone.Oscillator({ type: 'sine', frequency: 220 }).toDestination();
+    motionSynth.volume.value = -60;
+    motionSynth.start();
+  }
+  return motionSynth;
+}
+
+// The "動きを音にする" layer: one continuous tone whose pitch and volume
+// track how hard the player is tilting/turning the phone right now, called
+// every animation frame while a motion-driven game is playing. Created once
+// and left running near-silent rather than started/stopped per round —
+// Tone requires each start() to have a strictly later timestamp than the
+// last, and a game's own rAF loop can't guarantee that across quick
+// mount/unmount cycles (see playTick's same issue above).
+export function startMotionTone() {
+  if (!started) return;
+  ensureMotionSynth();
+}
+
+export function updateMotionTone(magnitude) {
+  if (!started || !motionSynth) return;
+  const m = Math.min(1, Math.max(0, magnitude));
+  motionSynth.frequency.rampTo(220 + m * 380, 0.05);
+  // Floors to true silence at rest instead of just "quiet" — this is the
+  // contrast half of the design: no motion, no sound at all.
+  motionSynth.volume.rampTo(m < 0.02 ? -60 : -46 + m * 30, 0.08);
+}
+
+export function stopMotionTone() {
+  if (!motionSynth) return;
+  motionSynth.volume.rampTo(-60, 0.2);
+}
+
 let leftTickSynth;
 let rightTickSynth;
 let leftNextTickTime = 0;

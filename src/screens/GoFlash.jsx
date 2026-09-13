@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import Impact from '../fx/Impact.jsx';
+import { vibrateImpact } from '../fx/haptics.js';
 
 const FLASH_MS = 700;
 
@@ -13,6 +14,7 @@ const FLASH_MS = 700;
 // "something just happened."
 export default function GoFlash({ scene, onDone }) {
   useEffect(() => {
+    vibrateImpact();
     const timer = setTimeout(onDone, FLASH_MS);
     return () => clearTimeout(timer);
   }, [onDone]);

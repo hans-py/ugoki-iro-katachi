@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTilt } from '../engines/useTilt.jsx';
 import { usePeerLink } from '../engines/usePeerLink.jsx';
+import { startMotionTone, updateMotionTone, stopMotionTone } from '../fx/audio.js';
 import ControllerView from '../screens/ControllerView.jsx';
 import TiltMazeVisual, {
   BALL_RADIUS,
@@ -55,6 +56,7 @@ export default function TiltMaze({ onFinish, scene }) {
   useEffect(() => {
     const start = performance.now();
     let last = start;
+    startMotionTone();
     let raf = requestAnimationFrame(tick);
 
     function resolveWallCollisions(b) {
@@ -87,6 +89,7 @@ export default function TiltMaze({ onFinish, scene }) {
 
       const b = ballRef.current;
       const { x: tx, y: ty } = tiltRef.current;
+      updateMotionTone(Math.hypot(tx, ty));
       b.vx += tx * ACCEL * dt;
       b.vy += ty * ACCEL * dt;
       const damping = Math.max(0, 1 - DAMPING_PER_SEC * dt);
@@ -134,7 +137,10 @@ export default function TiltMaze({ onFinish, scene }) {
       raf = requestAnimationFrame(tick);
     }
 
-    return () => cancelAnimationFrame(raf);
+    return () => {
+      cancelAnimationFrame(raf);
+      stopMotionTone();
+    };
   }, [finish, scene, send]);
 
   const hint = isFallback ? 'マウス/指で盤面を傾ける' : 'スマホを傾けてボールをゴールへ';

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { getTitle } from '../data/titles.js';
 import { playBoom } from '../fx/audio.js';
+import { vibrateGrandImpact } from '../fx/haptics.js';
 import { usePeerLink } from '../engines/usePeerLink.jsx';
 import ResultVisual from './ResultVisual.jsx';
 import ControllerView from './ControllerView.jsx';
@@ -44,6 +45,7 @@ export default function Result() {
     if (playedRef.current) return;
     playedRef.current = true;
     playBoom();
+    vibrateGrandImpact();
     send({ type: 'result', title, total, scores });
   }, [scores, total, title, navigate, send]);
 

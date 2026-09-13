@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTilt } from '../engines/useTilt.jsx';
 import { usePeerLink } from '../engines/usePeerLink.jsx';
+import { startMotionTone, updateMotionTone, stopMotionTone } from '../fx/audio.js';
 import ControllerView from '../screens/ControllerView.jsx';
 import CompassAlignVisual from './CompassAlignVisual.jsx';
 
@@ -12,6 +13,11 @@ function angularDiff(a, b) {
   const d = Math.abs(a - b) % 360;
   return d > 180 ? 360 - d : d;
 }
+
+// How many degrees/sec of turning counts as "moving as fast as this phone
+// physically can be turned" — sonified at 1.0, so casual turning stays quiet
+// and a fast spin sounds a clearly higher, louder tone.
+const MAX_TURN_RATE = 260;
 
 export default function CompassAlign({ onFinish, scene }) {
   const { heading, isFallback } = useTilt();
@@ -51,6 +57,8 @@ export default function CompassAlign({ onFinish, scene }) {
     const start = performance.now();
     let last = start;
     let holdMs = 0;
+    let prevHeading = headingRef.current;
+    startMotionTone();
     let raf = requestAnimationFrame(tick);
 
     function tick(now) {
@@ -59,6 +67,10 @@ export default function CompassAlign({ onFinish, scene }) {
       const elapsed = now - start;
       const remaining = Math.max(0, DURATION_MS - elapsed);
       setTimeLeft(remaining);
+
+      const turnRate = dt > 0 ? (angularDiff(headingRef.current, prevHeading) / dt) * 1000 : 0;
+      prevHeading = headingRef.current;
+      updateMotionTone(turnRate / MAX_TURN_RATE);
 
       const d = angularDiff(headingRef.current, target);
       setDiff(d);
@@ -97,7 +109,10 @@ export default function CompassAlign({ onFinish, scene }) {
       raf = requestAnimationFrame(tick);
     }
 
-    return () => cancelAnimationFrame(raf);
+    return () => {
+      cancelAnimationFrame(raf);
+      stopMotionTone();
+    };
   }, [finish, target, scene, send]);
 
   const hint = isFallback ? '画面上でドラッグして回す' : 'スマホを水平に持って体ごと回す';

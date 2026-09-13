@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTilt } from '../engines/useTilt.jsx';
 import { usePeerLink } from '../engines/usePeerLink.jsx';
-import { playChime } from '../fx/audio.js';
+import { playChime, startMotionTone, updateMotionTone, stopMotionTone } from '../fx/audio.js';
 import TiltFillVisual from './TiltFillVisual.jsx';
 import ControllerView from '../screens/ControllerView.jsx';
 
@@ -41,6 +41,7 @@ export default function TiltFill({ onFinish, scene }) {
   useEffect(() => {
     const start = performance.now();
     let last = start;
+    startMotionTone();
     let raf = requestAnimationFrame(tick);
 
     function tick(now) {
@@ -50,6 +51,7 @@ export default function TiltFill({ onFinish, scene }) {
       setTimeLeft(remaining);
 
       const magnitude = Math.min(1, Math.hypot(tiltRef.current.x, tiltRef.current.y));
+      updateMotionTone(magnitude);
       const isSpilling = magnitude > SPILL_THRESHOLD;
       const isPouring = !isSpilling && magnitude > MIN_POUR;
       setSpilling(isSpilling);
@@ -87,7 +89,10 @@ export default function TiltFill({ onFinish, scene }) {
       raf = requestAnimationFrame(tick);
     }
 
-    return () => cancelAnimationFrame(raf);
+    return () => {
+      cancelAnimationFrame(raf);
+      stopMotionTone();
+    };
   }, [finish, scene, send]);
 
   const hint = pouring ? '注いでいる…' : isFallback ? 'マウス/指でグラスの傾きを操作' : 'スマホを傾けて注ごう';

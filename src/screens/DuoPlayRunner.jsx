@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { usePeerLink } from '../engines/usePeerLink.jsx';
 import { pickRandomGamesSeeded } from '../data/titles.js';
 import { GAME_COMPONENTS, SCENES } from '../games/gameRegistry.js';
+import { vibrateGrandImpact } from '../fx/haptics.js';
 import Instruction from './Instruction.jsx';
 import GoFlash from './GoFlash.jsx';
 import ControllerView from './ControllerView.jsx';
@@ -36,6 +37,7 @@ export default function DuoPlayRunner() {
       if (nextIndex >= playlist.length) {
         const total = nextScores.reduce((a, b) => a + b.score, 0);
         send({ type: 'duoResult', duoMode, slot: mySlot, scores: nextScores, total });
+        vibrateGrandImpact();
         setScores(nextScores);
         setPhase('finished');
       } else {
