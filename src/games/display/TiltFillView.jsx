@@ -5,7 +5,7 @@ import TiltFillVisual from '../TiltFillVisual.jsx';
 // this just renders the state it broadcast, using the exact same visual
 // component the phone itself would use if it were playing standalone.
 export default function TiltFillView({ state }) {
-  const hint = state.pouring ? '注いでいる…' : 'スマホを傾けて注ごう';
+  const hint = state.pouring ? 'ゆっくり…' : 'こぼしたら、バレる';
   return (
     <TiltFillVisual
       scene={state.scene}

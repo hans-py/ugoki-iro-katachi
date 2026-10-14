@@ -40,7 +40,7 @@ export default function TiltMazeVisual({ scene, timeLeft, ball, status, hint, du
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, LOGICAL_W, LOGICAL_H);
 
-    ctx.strokeStyle = 'rgba(23, 16, 43, 0.7)';
+    ctx.strokeStyle = '#FFFFFF';
     ctx.lineWidth = WALL_THICKNESS;
     ctx.lineCap = 'round';
     for (const wall of WALLS) {
@@ -50,17 +50,33 @@ export default function TiltMazeVisual({ scene, timeLeft, ball, status, hint, du
       ctx.stroke();
     }
 
-    ctx.fillStyle = 'rgba(31, 200, 163, 0.3)';
+    // The goal is a dark hole and the thing being rolled is an eyeball whose
+    // pupil keeps looking at the hole — same physics, different meaning.
+    ctx.fillStyle = 'rgba(255, 20, 20, 0.28)';
     ctx.beginPath();
     ctx.arc(GOAL.x, GOAL.y, GOAL_RADIUS, 0, Math.PI * 2);
     ctx.fill();
-    ctx.strokeStyle = '#1FC8A3';
-    ctx.lineWidth = 2;
+    ctx.strokeStyle = '#FF1414';
+    ctx.lineWidth = 3;
     ctx.stroke();
 
-    ctx.fillStyle = '#17102B';
+    ctx.fillStyle = '#FFFFFF';
     ctx.beginPath();
-    ctx.arc(ball.x, ball.y, BALL_RADIUS, 0, Math.PI * 2);
+    ctx.arc(ball.x, ball.y, BALL_RADIUS * 1.35, 0, Math.PI * 2);
+    ctx.fill();
+
+    const lookX = GOAL.x - ball.x;
+    const lookY = GOAL.y - ball.y;
+    const lookLen = Math.hypot(lookX, lookY) || 1;
+    const px = ball.x + (lookX / lookLen) * 4;
+    const py = ball.y + (lookY / lookLen) * 4;
+    ctx.fillStyle = '#FF1414';
+    ctx.beginPath();
+    ctx.arc(px, py, 7, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#0B0B0F';
+    ctx.beginPath();
+    ctx.arc(px, py, 3.2, 0, Math.PI * 2);
     ctx.fill();
   }, [ball]);
 

@@ -2,7 +2,7 @@
 // all, just the current action as large text — the actual glass/dial/etc.
 // is drawn on the display instead. This is what "a phone used as a pure
 // controller" looks like.
-export default function ControllerView({ scene, message, sub, actionLabel, onAction }) {
+export default function ControllerView({ scene, message, sub, actionLabel, onAction, children }) {
   return (
     <div className={`screen controller-view scene-${scene}`}>
       <div className="phone-ambient">
@@ -14,6 +14,7 @@ export default function ControllerView({ scene, message, sub, actionLabel, onAct
       <p className="eyebrow">ディスプレイを見てね</p>
       <p className="controller-message">{message}</p>
       {sub && <p className="lead">{sub}</p>}
+      {children}
       {actionLabel && (
         <button className="primary-button" onClick={onAction}>
           {actionLabel}

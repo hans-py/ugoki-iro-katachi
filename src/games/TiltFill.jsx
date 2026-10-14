@@ -95,7 +95,7 @@ export default function TiltFill({ onFinish, scene }) {
     };
   }, [finish, scene, send]);
 
-  const hint = pouring ? '注いでいる…' : isFallback ? 'マウス/指でグラスの傾きを操作' : 'スマホを傾けて注ごう';
+  const hint = pouring ? 'ゆっくり…' : isFallback ? 'マウス/指で傾けて' : 'こぼしたら、バレる';
 
   if (connected) {
     return (

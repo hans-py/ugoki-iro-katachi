@@ -6,13 +6,14 @@ import { vibrateGrandImpact } from '../fx/haptics.js';
 import { usePeerLink } from '../engines/usePeerLink.jsx';
 import ResultVisual from './ResultVisual.jsx';
 import ControllerView from './ControllerView.jsx';
+import ResultStill from './ResultStill.jsx';
 
 // If nobody touches "もう一度", the phone (and, if paired, the shared
 // display) would otherwise sit on this result forever — at an unattended
 // exhibit that's the display stuck showing one visitor's score, unable to
 // show the QR for the next person. Auto-return covers whoever just walks
 // off with their phone.
-const RETURN_TO_START_MS = 8000;
+const RETURN_TO_START_MS = 16000;
 
 export default function Result() {
   const location = useLocation();
@@ -65,7 +66,9 @@ export default function Result() {
         sub={`${total} / 500 — けっかはディスプレイで!`}
         actionLabel="もう一度"
         onAction={restart}
-      />
+      >
+        <ResultStill />
+      </ControllerView>
     );
   }
 

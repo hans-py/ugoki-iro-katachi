@@ -131,7 +131,7 @@ export default function LineTrace({ onFinish, scene }) {
     };
   }, [registerPoint]);
 
-  const hint = progress > 0 ? 'そのままゴールまでなぞって' : '光る点(スタート)から指でなぞってね';
+  const hint = progress > 0 ? 'あとをたどって' : '光る点から、たどって';
 
   return (
     <>

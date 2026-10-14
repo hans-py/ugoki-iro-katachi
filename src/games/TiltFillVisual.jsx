@@ -19,7 +19,7 @@ export default function TiltFillVisual({ scene, timeLeft, fill, spilling, pourin
       <div className={`glass ${spilling ? 'spilling' : ''}`}>
         <div className="liquid" style={{ height: `${fill}%` }} />
         <div className="particles-layer">
-          <Particles mode="pour" active={status === 'playing' && pouring} color="#FFC53D" />
+          <Particles mode="pour" active={status === 'playing' && pouring} color="#FF1414" />
         </div>
       </div>
 
@@ -28,7 +28,7 @@ export default function TiltFillVisual({ scene, timeLeft, fill, spilling, pourin
 
       {status !== 'playing' && (
         <div className="result-overlay">
-          <Particles mode="burst" active={status === 'cleared'} color="#FFC53D" />
+          <Particles mode="burst" active={status === 'cleared'} color="#FF1414" />
           {status === 'cleared' && <Impact />}
           <h2>{status === 'cleared' ? 'クリア!' : 'タイムアップ'}</h2>
           <p>到達量 {Math.round(fill)}%</p>

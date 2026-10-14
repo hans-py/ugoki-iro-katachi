@@ -143,7 +143,7 @@ export default function TiltMaze({ onFinish, scene }) {
     };
   }, [finish, scene, send]);
 
-  const hint = isFallback ? 'マウス/指で盤面を傾ける' : 'スマホを傾けてボールをゴールへ';
+  const hint = isFallback ? 'マウス/指で傾けて' : 'みつからないうちに';
 
   if (connected) {
     return (

@@ -8,8 +8,9 @@ import { getNickname } from '../data/nicknames.js';
 import Instruction from './Instruction.jsx';
 import GoFlash from './GoFlash.jsx';
 import ControllerView from './ControllerView.jsx';
+import ResultStill from './ResultStill.jsx';
 
-const RETURN_TO_START_MS = 6000;
+const RETURN_TO_START_MS = 16000;
 
 // 二人で遊ぶ's runner: structurally the same instruction → GO → game loop as
 // solo's GameRunner, but the playlist comes from a seeded shuffle of the
@@ -80,7 +81,11 @@ export default function DuoPlayRunner() {
   let screen;
   if (phase === 'finished') {
     const total = scores.reduce((a, b) => a + b.score, 0);
-    screen = <ControllerView scene={scene} message="けっか発表!" sub={`ディスプレイを見てね(あなたの合計 ${total})`} />;
+    screen = (
+      <ControllerView scene={scene} message="けっか発表!" sub={`ディスプレイを見てね(あなたの合計 ${total})`}>
+        <ResultStill />
+      </ControllerView>
+    );
   } else if (phase === 'waitingPartner') {
     screen = (
       <div className={`screen instruction-screen scene-${scene}`}>
