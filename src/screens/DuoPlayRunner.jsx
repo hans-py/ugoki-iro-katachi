@@ -4,6 +4,7 @@ import { usePeerLink } from '../engines/usePeerLink.jsx';
 import { pickRandomGamesSeeded } from '../data/titles.js';
 import { GAME_COMPONENTS, SCENES } from '../games/gameRegistry.js';
 import { vibrateGrandImpact } from '../fx/haptics.js';
+import { getNickname } from '../data/nicknames.js';
 import Instruction from './Instruction.jsx';
 import GoFlash from './GoFlash.jsx';
 import ControllerView from './ControllerView.jsx';
@@ -74,14 +75,14 @@ export default function DuoPlayRunner() {
 
   const game = playlist[index];
   const scene = SCENES[index % SCENES.length];
+  const me = mySlot ? getNickname(roomId, mySlot) : null;
 
+  let screen;
   if (phase === 'finished') {
     const total = scores.reduce((a, b) => a + b.score, 0);
-    return <ControllerView scene={scene} message="けっか発表!" sub={`ディスプレイを見てね(あなたの合計 ${total})`} />;
-  }
-
-  if (phase === 'waitingPartner') {
-    return (
+    screen = <ControllerView scene={scene} message="けっか発表!" sub={`ディスプレイを見てね(あなたの合計 ${total})`} />;
+  } else if (phase === 'waitingPartner') {
+    screen = (
       <div className={`screen instruction-screen scene-${scene}`}>
         <div className="phone-ambient">
           <span className="ambient-shape ambient-tri" />
@@ -97,10 +98,8 @@ export default function DuoPlayRunner() {
         <p className="lead">あいてを待っています…</p>
       </div>
     );
-  }
-
-  if (phase === 'instruction') {
-    return (
+  } else if (phase === 'instruction') {
+    screen = (
       <Instruction
         game={game}
         index={index}
@@ -117,12 +116,25 @@ export default function DuoPlayRunner() {
         }}
       />
     );
+  } else if (phase === 'go') {
+    screen = <GoFlash scene={scene} onDone={() => setPhase('playing')} />;
+  } else {
+    const GameComponent = GAME_COMPONENTS[game.id];
+    screen = <GameComponent key={game.id} scene={scene} onFinish={handleFinish} />;
   }
 
-  if (phase === 'go') {
-    return <GoFlash scene={scene} onDone={() => setPhase('playing')} />;
-  }
-
-  const GameComponent = GAME_COMPONENTS[game.id];
-  return <GameComponent key={game.id} scene={scene} onFinish={handleFinish} />;
+  // Every phase (including the games, which render their own full screens)
+  // gets the same badge on top, so a player never loses track of which half
+  // of the shared display is theirs.
+  return (
+    <>
+      {me && (
+        <div className="player-badge" style={{ '--badge-color': me.color }}>
+          <span className="player-badge-dot" />
+          {me.name}({me.side})
+        </div>
+      )}
+      {screen}
+    </>
+  );
 }

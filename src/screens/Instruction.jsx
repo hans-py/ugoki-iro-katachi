@@ -19,6 +19,7 @@ export default function Instruction({ game, index, total, scene, onStart, button
       </p>
       <p className="instruction-verb">{game.verb}</p>
       <p className="lead">{game.instruction}</p>
+      {game.story && <p className="instruction-story">{game.story}</p>}
       <button className="primary-button" onClick={onStart}>
         {buttonLabel}
       </button>

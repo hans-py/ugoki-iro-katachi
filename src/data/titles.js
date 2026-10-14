@@ -4,72 +4,84 @@ export const GAMES = [
     label: 'なみなみ',
     verb: 'そそげ',
     instruction: '傾けて、こぼさず満タンに',
+    story: 'バケツに水をなみなみと。庭の土は、よく湿らせないと掘れないから。',
   },
   {
     id: 'tiltMaze',
     label: 'めいろ',
     verb: 'ころがせ',
     instruction: '傾けてボールをゴールへ',
+    story: '廊下の床は少し傾いている。あの人を運ぶとき、いつもこっちに転がってきた。',
   },
   {
     id: 'timingCenter',
     label: 'まと',
     verb: 'ねらえ',
     instruction: 'バーが真ん中に来た瞬間タップ',
+    story: 'あの人が帰ってくる、ちょうどその瞬間。玄関の電気を消しておいた。',
   },
   {
     id: 'timingRhythm',
     label: 'はくどう',
     verb: 'きざめ',
     instruction: 'リングが重なった瞬間タップ',
+    story: '床下から、一定の音がする。わたしの心臓の音だと思うことにした。',
   },
   {
     id: 'shakeGauge',
     label: 'ゲージ',
     verb: 'ふれ',
     instruction: '揺する、できなければ連打',
+    story: 'スコップの土を、よく振って落とす。爪の間は、あとで洗えばいい。',
   },
   {
     id: 'compassAlign',
     label: 'らしんばん',
     verb: 'まわせ',
     instruction: '体ごと回して方角を合わせろ',
+    story: 'あの人を埋めたのは、庭の北の隅。方角は、間違えていないはず。',
   },
   {
     id: 'holdStop',
     label: 'ぴたっ',
     verb: 'とめろ',
     instruction: '貯めて、ねらった位置で離す',
+    story: '呼び鈴が鳴った。息を止めて、遠ざかる足音を数える。',
   },
   {
     id: 'lineTrace',
     label: 'なぞり',
     verb: 'なぞれ',
     instruction: '指でなぞってゴールへ',
+    story: '床のしみを雑巾でなぞる。消えた。でも、あの人の名前だけが消えない。',
   },
   {
     id: 'flickSpeed',
     label: 'はじき',
     verb: 'はじけ',
     instruction: '矢印の向きへ、すばやく',
+    story: 'あの人が最後に指さした方を、わたしは見なかった。見たら、きっと動けなくなる。',
   },
   {
     id: 'handleSteer',
     label: 'ハンドル',
     verb: 'にぎれ',
     instruction: '両手でつかんでひねれ',
+    story: 'トランクの重さが、ハンドルに伝わってくる。山まで、あと一時間。',
   },
   {
     id: 'polyClap',
     label: 'てびょうし',
     verb: 'たたけ',
     instruction: '左右で違う拍子をキープ',
+    story: 'スコップの音と、玄関のノックの音。拍子がずれたら、気づかれる。',
   },
   {
     id: 'smoothLift',
     label: 'そよぎ',
     verb: 'そっと',
     instruction: '乱暴にせず、なめらかに',
+    story: 'そっと持ち上げる。起こしてしまわないように。もう起きないのは、知っているけど。',
   },
 ];
 
@@ -102,7 +114,7 @@ function mulberry32(seed) {
   };
 }
 
-function hashString(str) {
+export function hashString(str) {
   let h = 0;
   for (let i = 0; i < str.length; i += 1) {
     h = (Math.imul(31, h) + str.charCodeAt(i)) | 0;

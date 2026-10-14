@@ -656,6 +656,28 @@ body {
 }
 
 /*
+  The horror 意味怖 line under each instruction: deliberately small, quiet
+  and slow to appear, so the pop card reads first and the creepy second
+  line only registers a moment later.
+*/
+.instruction-story {
+  position: relative;
+  max-width: 24em;
+  margin: calc(-1 * var(--space-2)) 0 var(--space-4);
+  font-size: 0.85rem;
+  line-height: 1.9;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+  opacity: 0;
+  animation: story-in 1.6s ease 0.9s forwards;
+}
+
+@keyframes story-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 0.62; transform: translateY(0); }
+}
+
+/*
   The "calm" beat between rounds — a slow ambient drift plus a barely-there
   background breathe, deliberately understated so it contrasts with GO!'s
   hard punch and the game's own instant judge-flashes. Reuses the exact
@@ -1560,4 +1582,59 @@ body {
 
 .duo-result-column .score-breakdown {
   width: min(30vw, 320px);
+}
+
+/*
+  二人で遊ぶ: which player is which. The phone shows its own name/side as a
+  fixed pill on every screen; the display shows the same pill over each half.
+*/
+.player-badge,
+.duo-nameplate {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  padding: 0.35em 0.9em;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--surface);
+  font-family: var(--font-body);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  pointer-events: none;
+}
+
+.player-badge {
+  position: fixed;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+  font-size: 0.8rem;
+}
+
+.duo-nameplate {
+  position: absolute;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+  font-size: clamp(0.9rem, 1.6vw, 1.4rem);
+}
+
+.player-badge-dot {
+  width: 0.9em;
+  height: 0.9em;
+  border-radius: 50%;
+  background: var(--badge-color);
+  flex-shrink: 0;
+}
+
+.duo-result-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  margin: 0;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  font-size: clamp(0.9rem, 1.6vw, 1.3rem);
 }

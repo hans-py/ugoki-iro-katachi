@@ -43,7 +43,7 @@ export default function Display() {
   }, [peerStates.A, peerStates.B, broadcast]);
 
   if (isDuo) {
-    return <DuoDisplay peerStates={peerStates} connectedSlots={connectedSlots} />;
+    return <DuoDisplay roomId={roomId} peerStates={peerStates} connectedSlots={connectedSlots} />;
   }
 
   const ActiveView = latestState && DISPLAY_VIEWS[latestState.type];

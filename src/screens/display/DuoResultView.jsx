@@ -2,9 +2,9 @@ import { GAMES, getMatchLabel } from '../../data/titles.js';
 import Particles from '../../fx/Particles.jsx';
 import Impact from '../../fx/Impact.jsx';
 
-function battleVerdict(a, b) {
-  if (a.total > b.total) return 'PLAYER A の勝ち!';
-  if (b.total > a.total) return 'PLAYER B の勝ち!';
+function battleVerdict(a, b, nameA, nameB) {
+  if (a.total > b.total) return `${nameA.name} の勝ち!`;
+  if (b.total > a.total) return `${nameB.name} の勝ち!`;
   return 'ひきわけ!';
 }
 
@@ -20,10 +20,13 @@ function matchPercent(a, b) {
   return Math.round(similarities.reduce((sum, v) => sum + v, 0) / similarities.length);
 }
 
-function ScoreColumn({ label, result }) {
+function ScoreColumn({ nickname, result }) {
   return (
     <div className="duo-result-column">
-      <p className="eyebrow">{label}</p>
+      <p className="duo-result-name" style={{ '--badge-color': nickname.color }}>
+        <span className="player-badge-dot" />
+        {nickname.name}
+      </p>
       <p className="total-score">{result.total}</p>
       <ul className="score-breakdown">
         {result.scores.map((s) => {
@@ -43,9 +46,9 @@ function ScoreColumn({ label, result }) {
 // Shown on the display once both phones have finished all 5 duo games —
 // each phone only knows its own scores, so the display (which has received
 // both) is the only place that can actually compare them.
-export default function DuoResultView({ a, b }) {
+export default function DuoResultView({ a, b, nameA, nameB }) {
   const isBattle = a.duoMode === 'battle';
-  const headline = isBattle ? battleVerdict(a, b) : `相性 ${matchPercent(a, b)}%`;
+  const headline = isBattle ? battleVerdict(a, b, nameA, nameB) : `相性 ${matchPercent(a, b)}%`;
   const subline = isBattle ? '5ゲーム合計スコアで勝負' : getMatchLabel(matchPercent(a, b));
 
   return (
@@ -59,8 +62,8 @@ export default function DuoResultView({ a, b }) {
       <p className="lead">{subline}</p>
 
       <div className="duo-result-columns">
-        <ScoreColumn label="PLAYER A" result={a} />
-        <ScoreColumn label="PLAYER B" result={b} />
+        <ScoreColumn nickname={nameA} result={a} />
+        <ScoreColumn nickname={nameB} result={b} />
       </div>
     </div>
   );
