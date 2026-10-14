@@ -23,6 +23,7 @@ import HandleSteerView from './display/HandleSteerView.jsx';
 import LineTraceView from './display/LineTraceView.jsx';
 import PolyClapView from './display/PolyClapView.jsx';
 import ResultView from '../screens/display/ResultView.jsx';
+import ScareView from './display/ScareView.jsx';
 
 // Shared between the solo GameRunner and the duo runner — one place mapping
 // a game id to its playable component, instead of two copies of the same
@@ -65,4 +66,5 @@ export const DISPLAY_VIEWS = {
   lineTrace: LineTraceView,
   polyClap: PolyClapView,
   result: ResultView,
+  scare: ScareView,
 };

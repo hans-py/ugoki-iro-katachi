@@ -4,6 +4,8 @@ import { TiltProvider } from './engines/useTilt.jsx';
 import { ShakeProvider } from './engines/useShake.jsx';
 import { PeerLinkProvider, usePeerLink } from './engines/usePeerLink.jsx';
 import { pickRandomGames } from './data/titles.js';
+import { planScare, preloadScare } from './data/scares.js';
+import Scare from './fx/Scare.jsx';
 import { GAME_COMPONENTS, SCENES } from './games/gameRegistry.js';
 import Start from './screens/Start.jsx';
 import ScanQr from './screens/ScanQr.jsx';
@@ -22,7 +24,12 @@ function GameRunner() {
   const [index, setIndex] = useState(0);
   const [sceneOffset] = useState(() => Math.floor(Math.random() * SCENES.length));
   const [scores, setScores] = useState([]);
-  const [phase, setPhase] = useState('instruction'); // 'instruction' | 'go' | 'playing'
+  const [phase, setPhase] = useState('instruction'); // 'instruction' | 'go' | 'playing' | 'scare'
+  const [scarePlan] = useState(planScare);
+
+  useEffect(() => {
+    preloadScare(scarePlan);
+  }, [scarePlan]);
 
   const handleFinish = useCallback(
     (result) => {
@@ -34,14 +41,18 @@ function GameRunner() {
       } else {
         setScores(nextScores);
         setIndex(nextIndex);
-        setPhase('instruction');
+        setPhase(scarePlan?.atIndex === nextIndex ? 'scare' : 'instruction');
       }
     },
-    [playlist, index, scores, navigate]
+    [playlist, index, scores, navigate, scarePlan]
   );
 
   const game = playlist[index];
   const scene = SCENES[(index + sceneOffset) % SCENES.length];
+
+  if (phase === 'scare') {
+    return <Scare kind={scarePlan.kind} asset={scarePlan.asset} onDone={() => setPhase('instruction')} />;
+  }
 
   if (phase === 'instruction') {
     return (

@@ -8,7 +8,6 @@ import { getNickname } from '../data/nicknames.js';
 import Instruction from './Instruction.jsx';
 import GoFlash from './GoFlash.jsx';
 import ControllerView from './ControllerView.jsx';
-import ResultStill from './ResultStill.jsx';
 
 const RETURN_TO_START_MS = 16000;
 
@@ -81,11 +80,7 @@ export default function DuoPlayRunner() {
   let screen;
   if (phase === 'finished') {
     const total = scores.reduce((a, b) => a + b.score, 0);
-    screen = (
-      <ControllerView scene={scene} message="けっか発表!" sub={`ディスプレイを見てね(あなたの合計 ${total})`}>
-        <ResultStill total={total} />
-      </ControllerView>
-    );
+    screen = <ControllerView scene={scene} message="けっか発表!" sub={`ディスプレイを見てね(あなたの合計 ${total})`} />;
   } else if (phase === 'waitingPartner') {
     screen = (
       <div className={`screen instruction-screen scene-${scene}`}>
@@ -110,6 +105,7 @@ export default function DuoPlayRunner() {
         index={index}
         total={playlist.length}
         scene={scene}
+        showStory={false}
         buttonLabel={index === 0 ? 'じゅんび完了' : 'はじめる'}
         onStart={() => {
           if (index === 0) {

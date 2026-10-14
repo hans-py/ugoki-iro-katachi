@@ -7,7 +7,7 @@ import { isStoryRevealed } from '../data/stills.js';
 // the "calm" beat of the rhythm — a slow ambient drift and background
 // breathe instead of silence, so the contrast with GO!'s hard punch and the
 // game's snap-judgment flashes actually reads as contrast.
-export default function Instruction({ game, index, total, scene, onStart, buttonLabel = 'はじめる' }) {
+export default function Instruction({ game, index, total, scene, onStart, buttonLabel = 'はじめる', showStory = true }) {
   const story = useMemo(() => (isStoryRevealed() ? game.storyRevealed : game.story), [game]);
   return (
     <div className={`screen instruction-screen scene-${scene}`}>
@@ -23,7 +23,7 @@ export default function Instruction({ game, index, total, scene, onStart, button
       </p>
       <p className="instruction-verb">{game.verb}</p>
       <p className="lead">{game.instruction}</p>
-      {story && <p className="instruction-story">{story}</p>}
+      {showStory && story && <p className="instruction-story">{story}</p>}
       <button className="primary-button" onClick={onStart}>
         {buttonLabel}
       </button>

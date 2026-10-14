@@ -1796,3 +1796,87 @@ body {
 .result-screen .still-locked {
   max-height: 24dvh;
 }
+
+/*
+  Rare interruptions between games (see src/fx/Scare.jsx): a flat black
+  screen with either torn color bars, a lone red dot, a staring eye, or a
+  clip dropped into src/assets/scares/.
+*/
+.scare-screen {
+  position: relative;
+  height: 100dvh;
+  width: 100vw;
+  background: #000;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.scare-bar {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  opacity: 0;
+  animation: scare-bar 0.7s steps(1, end) both;
+}
+
+@keyframes scare-bar {
+  0% { opacity: 0; transform: translateX(0); }
+  15% { opacity: 1; transform: translateX(-9%); }
+  35% { opacity: 0; }
+  55% { opacity: 1; transform: translateX(12%); }
+  75% { opacity: 0; }
+  90% { opacity: 1; transform: translateX(-4%); }
+  100% { opacity: 0; transform: translateX(0); }
+}
+
+.scare-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--blood);
+  opacity: 0;
+  animation: scare-dot 1.1s ease-in both;
+}
+
+@keyframes scare-dot {
+  0%, 55% { opacity: 0; transform: scale(0.4); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+.scare-eye {
+  width: min(92vw, 560px);
+  animation: scare-eye-zoom 2.2s ease-in both;
+}
+
+.scare-eye-lid {
+  transform-origin: 150px 100px;
+  animation: scare-eye-open 2.2s ease-in-out both;
+}
+
+.scare-eye-pupil {
+  transform-origin: 150px 100px;
+  animation: scare-eye-pupil 2.2s ease-in both;
+}
+
+@keyframes scare-eye-zoom {
+  from { transform: scale(0.8); }
+  to { transform: scale(1.18); }
+}
+
+@keyframes scare-eye-open {
+  0%, 12% { transform: scaleY(0.02); }
+  30%, 100% { transform: scaleY(1); }
+}
+
+@keyframes scare-eye-pupil {
+  0%, 40% { transform: scale(1.5); }
+  100% { transform: scale(0.55); }
+}
+
+.scare-media {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}

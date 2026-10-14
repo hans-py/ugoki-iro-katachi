@@ -48,6 +48,8 @@ export function parseTexts(raw) {
       if (m) (hints[m[1]] ??= {})[m[2].trim()] = value;
     } else if (section === '設定' && key === 'スチルをもらえる点数' && /^\d+$/.test(value)) {
       settings.stillThreshold = Number(value);
+    } else if (section === '設定' && key === 'びっくり演出が出る確率' && /^\d+$/.test(value)) {
+      settings.scareChance = Number(value);
     } else if (section === 'スチルの一言' && /^[\w-]+$/.test(key)) {
       captions[key] = value;
     }
