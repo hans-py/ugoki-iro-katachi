@@ -54,3 +54,11 @@ export function recordSeen(id) {
     // storage blocked (private mode) — the still just won't count as found
   }
 }
+
+// Once a phone has found about half the stills, instruction cards switch from
+// the innocent chore wording to the plain truth (game.storyRevealed) — the
+// foreshadowing pays off through replay.
+export function isStoryRevealed() {
+  const needed = Math.max(2, Math.ceil(STILLS.length / 2));
+  return readSeen().length >= needed;
+}

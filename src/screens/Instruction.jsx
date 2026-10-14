@@ -1,3 +1,6 @@
+import { useMemo } from 'react';
+import { isStoryRevealed } from '../data/stills.js';
+
 // Shown for a beat before each game: a big verb + one-line explanation, like
 // an arcade "READY?" card, so the player knows what body motion to use
 // before the timer starts. Unlike the game itself (fast, reactive), this is
@@ -5,6 +8,7 @@
 // breathe instead of silence, so the contrast with GO!'s hard punch and the
 // game's snap-judgment flashes actually reads as contrast.
 export default function Instruction({ game, index, total, scene, onStart, buttonLabel = 'はじめる' }) {
+  const story = useMemo(() => (isStoryRevealed() ? game.storyRevealed : game.story), [game]);
   return (
     <div className={`screen instruction-screen scene-${scene}`}>
       <div className="phone-ambient">
@@ -19,7 +23,7 @@ export default function Instruction({ game, index, total, scene, onStart, button
       </p>
       <p className="instruction-verb">{game.verb}</p>
       <p className="lead">{game.instruction}</p>
-      {game.story && <p className="instruction-story">{game.story}</p>}
+      {story && <p className="instruction-story">{story}</p>}
       <button className="primary-button" onClick={onStart}>
         {buttonLabel}
       </button>
