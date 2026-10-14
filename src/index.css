@@ -1880,3 +1880,39 @@ body {
   height: 100%;
   object-fit: cover;
 }
+
+.share-row {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: var(--space-1);
+}
+
+.share-button {
+  font-size: 0.85rem;
+  padding: 0.6em 1.4em;
+}
+
+.share-button:disabled {
+  opacity: 0.45;
+}
+
+.share-note {
+  width: 100%;
+  margin: 0;
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--on-scene-dim);
+}
+
+/* On short phones the result content (score list + still + share row +
+   button) is taller than the screen: let it scroll instead of clipping the
+   buttons off, and keep it centered only while it actually fits. */
+.result-screen,
+.controller-view {
+  overflow-y: auto;
+  touch-action: pan-y;
+  justify-content: safe center;
+}

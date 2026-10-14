@@ -3,6 +3,15 @@
 // Anything else (explanations, blank lines, "> " comments) is ignored.
 const GAME_KEYS = { 名前: 'label', 動詞: 'verb', 説明: 'instruction', 文: 'story', 真相: 'storyRevealed' };
 
+const SHARE_KEYS = {
+  カードの見出し: 'heading',
+  カードの下の文字: 'footer',
+  投稿文: 'caption',
+  シェアボタン: 'shareButton',
+  保存ボタン: 'saveButton',
+  保存したときの案内: 'savedNote',
+};
+
 function splitKeyValue(line) {
   const m = line.match(/^([^:：]+)[:：]\s*(.*)$/);
   return m ? [m[1].trim(), m[2].trim()] : null;
@@ -15,6 +24,7 @@ export function parseTexts(raw) {
   const captions = {};
   const hints = {};
   const settings = {};
+  const share = {};
   let section = '';
   let game = null;
 
@@ -50,6 +60,8 @@ export function parseTexts(raw) {
       settings.stillThreshold = Number(value);
     } else if (section === '設定' && key === 'びっくり演出が出る確率' && /^\d+$/.test(value)) {
       settings.scareChance = Number(value);
+    } else if (section === 'シェアカード') {
+      if (SHARE_KEYS[key]) share[SHARE_KEYS[key]] = value;
     } else if (section === 'スチルの一言' && /^[\w-]+$/.test(key)) {
       captions[key] = value;
     }
@@ -60,5 +72,5 @@ export function parseTexts(raw) {
   if (games.length === 0 || titles.length === 0 || matches.length === 0) {
     throw new Error('src/content/texts.md の見出し(ゲームの文章 / 結果の称号 / 相性の称号)が見つかりません');
   }
-  return { games, titles, matches, captions, hints, settings };
+  return { games, titles, matches, captions, hints, settings, share };
 }

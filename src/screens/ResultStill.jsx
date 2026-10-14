@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
-import { STILL_THRESHOLD, pickStill, recordSeen } from '../data/stills.js';
+import { POOL, STILL_THRESHOLD, getProgress, pickStill, recordSeen } from '../data/stills.js';
+import ShareButtons from './ShareButtons.jsx';
 
 // What a finished session earns on the phone that played it: a random still
 // if the total reached STILL_THRESHOLD, otherwise a locked silhouette showing
 // how far off it was. Which stills a phone has found is remembered on that
 // phone, so replaying keeps turning up new ones until the set is complete.
-export default function ResultStill({ total }) {
+export default function ResultStill({ total, title }) {
   const earned = total >= STILL_THRESHOLD;
   const [draw] = useState(() => (earned ? pickStill() : null));
 
@@ -21,6 +22,7 @@ export default function ResultStill({ total }) {
           <span className="still-scan" />
         </div>
         <p className="still-count">あと {STILL_THRESHOLD - total} 点で、見られる</p>
+        <ShareButtons info={{ title, total, seenCount: getProgress().count, stillTotal: POOL.length, stillSrc: null }} />
       </figure>
     );
   }
@@ -41,6 +43,9 @@ export default function ResultStill({ total }) {
       </div>
       {still.caption && <figcaption className="still-caption">{still.caption}</figcaption>}
       <p className="still-count">{complete ? 'COMPLETE' : `${seenCount} / ${poolTotal}`}</p>
+      <ShareButtons
+        info={{ title, total, seenCount, stillTotal: poolTotal, stillSrc: still.isVideo ? null : still.src }}
+      />
     </figure>
   );
 }

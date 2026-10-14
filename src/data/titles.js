@@ -69,4 +69,5 @@ export function getMatchLabel(percent) {
 export const STILL_CAPTIONS = TEXTS.captions;
 export const HINTS = TEXTS.hints;
 export const STILL_THRESHOLD = TEXTS.settings.stillThreshold ?? 350;
+export const SHARE_TEXTS = TEXTS.share;
 export const SCARE_CHANCE = TEXTS.settings.scareChance ?? 30;
