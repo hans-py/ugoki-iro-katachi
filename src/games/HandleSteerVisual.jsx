@@ -1,5 +1,6 @@
 import Hud from '../screens/Hud.jsx';
 import Impact from '../fx/Impact.jsx';
+import { getHint } from '../data/hints.js';
 
 export default function HandleSteerVisual({
   scene,
@@ -32,7 +33,7 @@ export default function HandleSteerVisual({
         <div className="compass-hold-ring" style={{ '--progress': holdProgress }} />
       </div>
 
-      {status === 'playing' && <p className="hint">{gripped ? 'そのままひねって合わせろ' : '画面を両手の指2本でつかもう'}</p>}
+      {status === 'playing' && <p className="hint">{getHint('handleSteer', gripped ? 'つかみ中' : 'つかむ前')}</p>}
 
       {status !== 'playing' && (
         <div className="result-overlay">

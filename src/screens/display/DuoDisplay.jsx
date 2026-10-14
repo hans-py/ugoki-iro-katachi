@@ -1,14 +1,20 @@
 import { DISPLAY_VIEWS } from '../../games/gameRegistry.js';
+import QrCode from '../../fx/QrCode.jsx';
 import DuoResultView from './DuoResultView.jsx';
 import { getNickname } from '../../data/nicknames.js';
+import { SLOTS } from '../../data/slots.js';
 
-function DuoPanel({ nickname, connected, state }) {
+// How much each panel's stage is enlarged, by player count: fewer, wider
+// panels can afford a bigger game; four narrow ones need it closer to 1.
+const STAGE_SCALE = { 2: 1.4, 3: 1.2, 4: 0.95 };
+
+function DuoPanel({ nickname, connected, state, allReady }) {
   const label = nickname.name;
   if (!connected) {
     return (
       <div className="duo-waiting">
         <p className="eyebrow">{label}</p>
-        <p className="hint">スマホでQRを読み取って参加待ち…</p>
+        <p className="hint">つながっていません</p>
       </div>
     );
   }
@@ -16,10 +22,12 @@ function DuoPanel({ nickname, connected, state }) {
   if (!ActiveView) {
     const hint =
       state?.type === 'duoReady'
-        ? 'じゅんび完了、あいてを待っています'
+        ? allReady
+          ? 'まもなくスタート…'
+          : 'じゅんび完了、みんなを待っています'
         : state?.type === 'duoResult'
           ? 'けっか発表を待っています…'
-          : 'まもなくスタート…';
+          : 'じゅんび中…';
     return (
       <div className="duo-waiting">
         <p className="eyebrow">{label}</p>
@@ -34,7 +42,7 @@ function DuoPanel({ nickname, connected, state }) {
   );
 }
 
-// A fixed nameplate on each half (over whatever that player's game is
+// A fixed nameplate on each panel (over whatever that player's game is
 // drawing), in the same name and color shown on their phone.
 function Nameplate({ nickname }) {
   return (
@@ -45,30 +53,49 @@ function Nameplate({ nickname }) {
   );
 }
 
-// Once a second phone joins (二人で遊ぶ), the whole display permanently
-// switches to this split layout: each half mirrors one player's phone using
-// the exact same DISPLAY_VIEWS components solo play already built — a duo
-// game never needed its own display rendering, just a smaller stage to
-// render into (see `.duo-panel-stage` in index.css for the scale trick).
-export default function DuoDisplay({ roomId, peerStates, connectedSlots }) {
-  const nickA = getNickname(roomId, 'A');
-  const nickB = getNickname(roomId, 'B');
-  const bothFinished = peerStates.A?.type === 'duoResult' && peerStates.B?.type === 'duoResult';
-  if (bothFinished) {
-    return <DuoResultView a={peerStates.A} b={peerStates.B} nameA={nickA} nameB={nickB} />;
+// Once a second phone joins (みんなで遊ぶ), the whole display permanently
+// switches to this split layout for the rest of the room's life: one panel
+// per player who has connected, each mirroring that player's phone with the
+// exact same DISPLAY_VIEWS components solo play already built. Until the
+// round starts, a QR stays on screen so the next player can still join.
+export default function DuoDisplay({ roomId, peerStates, connectedSlots, activeSlots, started, allReady, joinUrl }) {
+  const players = activeSlots.map((slot) => ({ slot, nickname: getNickname(roomId, slot) }));
+
+  const connectedPlayers = players.filter((p) => connectedSlots[p.slot]);
+  const finished = connectedPlayers.filter((p) => peerStates[p.slot]?.type === 'duoResult');
+  if (finished.length >= 2 && finished.length === connectedPlayers.length) {
+    return (
+      <DuoResultView
+        entries={finished.map((p) => ({ slot: p.slot, nickname: p.nickname, result: peerStates[p.slot] }))}
+      />
+    );
   }
 
+  const count = Math.min(Math.max(players.length, 2), SLOTS.length);
+
   return (
-    <div className="duo-display scene-cycle">
-      <div className="duo-panel duo-panel-a">
-        <DuoPanel nickname={nickA} connected={connectedSlots.A} state={peerStates.A} />
-        <Nameplate nickname={nickA} />
-      </div>
-      <div className="duo-panel-divider" />
-      <div className="duo-panel duo-panel-b">
-        <DuoPanel nickname={nickB} connected={connectedSlots.B} state={peerStates.B} />
-        <Nameplate nickname={nickB} />
-      </div>
+    <div className="duo-display scene-cycle" style={{ '--duo-scale': STAGE_SCALE[count] }}>
+      {players.map((p, i) => (
+        <div className="duo-panel-group" key={p.slot}>
+          {i > 0 && <div className="duo-panel-divider" />}
+          <div className="duo-panel">
+            <DuoPanel
+              nickname={p.nickname}
+              connected={connectedSlots[p.slot]}
+              state={peerStates[p.slot]}
+              allReady={allReady}
+            />
+            <Nameplate nickname={p.nickname} />
+          </div>
+        </div>
+      ))}
+
+      {!started && players.length < SLOTS.length && joinUrl && (
+        <div className="duo-lobby-qr">
+          <QrCode value={joinUrl} size={150} />
+          <p>あと{SLOTS.length - players.length}人まで参加できます</p>
+        </div>
+      )}
     </div>
   );
 }

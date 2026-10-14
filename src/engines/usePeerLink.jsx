@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import Peer from 'peerjs';
+import { SLOTS, slotMap } from '../data/slots.js';
 
 // Connects phones (controllers) to the exhibit monitor (display) directly
 // over WebRTC — no backend of our own, just PeerJS's free public signalling
@@ -12,14 +13,16 @@ import Peer from 'peerjs';
 // `latestState`. One instance of this context is shared by the whole app via
 // <PeerLinkProvider>, mirroring the useTilt/useShake pattern.
 //
-// A room now accepts up to two phones at once (for 二人で遊ぶ) — the host
-// assigns whichever connects first slot 'A' and a second one slot 'B',
-// tracked in `peerStates`/`connectedSlots`. Solo play only ever fills slot
-// A, so `latestState`/`connected` mirror slot A exactly as before — existing
+// A room accepts up to four phones at once (みんなで遊ぶ) — the host assigns
+// each new connection the first free slot (A, B, C, D), tracked in
+// `peerStates`/`connectedSlots`. Solo play only ever fills slot A, so
+// `latestState`/`connected` mirror slot A exactly as before — existing
 // solo-only code (Display's idle/QR branch, every game's `send()` call)
-// keeps working unmodified.
+// keeps working unmodified. Once a round has started the host can lock the
+// room so a latecomer can't join mid-game.
 const ROOM_PREFIX = 'ugokiiro-';
 const SLOT_MSG = '__peerlink_slot__';
+const REFUSE_MSG = '__peerlink_refused__';
 
 function usePeerLinkState() {
   const [role, setRole] = useState('idle'); // 'idle' | 'host' | 'client'
@@ -28,20 +31,29 @@ function usePeerLinkState() {
   const [latestState, setLatestState] = useState(null);
   const [mySlot, setMySlot] = useState(null);
   const [hostMessage, setHostMessage] = useState(null);
-  const [peerStates, setPeerStates] = useState({ A: null, B: null });
-  const [connectedSlots, setConnectedSlots] = useState({ A: false, B: false });
+  const [peerStates, setPeerStates] = useState(() => slotMap(null));
+  const [connectedSlots, setConnectedSlots] = useState(() => slotMap(false));
+  const [joinError, setJoinError] = useState(null);
 
   const peerRef = useRef(null);
   const connRef = useRef(null); // client's own single connection to the host
   const hostConnsRef = useRef(new Map()); // host: peerId -> { conn, slot }
-  const slotsTakenRef = useRef({ A: false, B: false });
+  const slotsTakenRef = useRef(slotMap(false));
+  const lockedRef = useRef(false);
 
   const wireClientConnection = useCallback((conn) => {
     connRef.current = conn;
-    conn.on('open', () => setConnected(true));
+    // "Connected" only counts once the host has actually seated this phone
+    // (SLOT_MSG) — a full or already-started room accepts the raw connection
+    // just long enough to say so, and must not look like a successful join.
     conn.on('data', (data) => {
       if (data && data.__peerLink === SLOT_MSG) {
         setMySlot(data.slot);
+        setConnected(true);
+        return;
+      }
+      if (data && data.__peerLink === REFUSE_MSG) {
+        setJoinError('refused');
         return;
       }
       // Everything else the host sends down (e.g. "both players are ready,
@@ -57,13 +69,14 @@ function usePeerLinkState() {
   }, []);
 
   const wireHostConnection = useCallback((conn) => {
-    let slot = null;
-    if (!slotsTakenRef.current.A) slot = 'A';
-    else if (!slotsTakenRef.current.B) slot = 'B';
+    const slot = lockedRef.current ? null : SLOTS.find((s) => !slotsTakenRef.current[s]);
     if (!slot) {
-      // Room already has two players — a third scan is politely refused
-      // rather than silently overwriting one of the active slots.
-      conn.on('open', () => conn.close());
+      // Room is full or its round already started — refuse rather than
+      // silently overwriting an active slot or joining mid-game.
+      conn.on('open', () => {
+        conn.send({ __peerLink: REFUSE_MSG });
+        setTimeout(() => conn.close(), 300);
+      });
       return;
     }
     slotsTakenRef.current[slot] = true;
@@ -85,6 +98,7 @@ function usePeerLinkState() {
       setPeerStates((prev) => ({ ...prev, [slot]: null }));
       if (slot === 'A') setLatestState(null);
       setConnected(hostConnsRef.current.size > 0);
+      if (hostConnsRef.current.size === 0) lockedRef.current = false;
     });
   }, []);
 
@@ -144,15 +158,17 @@ function usePeerLinkState() {
     peerRef.current = null;
     connRef.current = null;
     hostConnsRef.current.clear();
-    slotsTakenRef.current = { A: false, B: false };
+    slotsTakenRef.current = slotMap(false);
+    lockedRef.current = false;
     setRole('idle');
     setRoomId(null);
     setConnected(false);
     setLatestState(null);
     setMySlot(null);
     setHostMessage(null);
-    setPeerStates({ A: null, B: null });
-    setConnectedSlots({ A: false, B: false });
+    setJoinError(null);
+    setPeerStates(slotMap(null));
+    setConnectedSlots(slotMap(false));
   }, []);
 
   const send = useCallback((data) => {
@@ -170,6 +186,12 @@ function usePeerLinkState() {
     }
   }, []);
 
+  // Host-only: stop seating new phones until everyone has left (the lock
+  // clears itself when the last connection closes).
+  const lockRoom = useCallback(() => {
+    lockedRef.current = true;
+  }, []);
+
   useEffect(
     () => () => {
       // In StrictMode's dev-only double-invoke, this cleanup runs once
@@ -182,7 +204,8 @@ function usePeerLinkState() {
       peerRef.current = null;
       connRef.current = null;
       hostConnsRef.current.clear();
-      slotsTakenRef.current = { A: false, B: false };
+      slotsTakenRef.current = slotMap(false);
+      lockedRef.current = false;
     },
     []
   );
@@ -196,11 +219,13 @@ function usePeerLinkState() {
     hostMessage,
     peerStates,
     connectedSlots,
+    joinError,
     hostRoom,
     joinRoom,
     leaveRoom,
     send,
     broadcast,
+    lockRoom,
   };
 }
 

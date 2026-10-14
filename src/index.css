@@ -1541,9 +1541,17 @@ body {
   overflow: hidden;
 }
 
+.duo-panel-group {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+}
+
 .duo-panel {
   position: relative;
   flex: 1;
+  min-width: 0;
   height: 100%;
   overflow: hidden;
 }
@@ -1560,7 +1568,7 @@ body {
   left: 50%;
   width: 100vw;
   height: 100dvh;
-  transform: translate(-50%, -50%) scale(1.4);
+  transform: translate(-50%, -50%) scale(var(--duo-scale, 1.4));
 }
 
 .duo-waiting {
@@ -1597,7 +1605,29 @@ body {
 }
 
 .duo-result-column .score-breakdown {
-  width: min(30vw, 320px);
+  width: min(calc(88vw / var(--cols, 2) - 24px), 320px);
+}
+
+.duo-lobby-qr {
+  position: absolute;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px 8px;
+  border-radius: 16px;
+  background: var(--surface);
+  color: var(--ink);
+  font-weight: 800;
+  font-size: 0.85rem;
+}
+
+.duo-lobby-qr p {
+  margin: 0;
 }
 
 /*
@@ -1634,7 +1664,9 @@ body {
   left: 50%;
   transform: translateX(-50%);
   z-index: 5;
-  font-size: clamp(0.9rem, 1.6vw, 1.4rem);
+  max-width: 94%;
+  white-space: nowrap;
+  font-size: clamp(0.7rem, 1.3vw, 1.4rem);
 }
 
 .player-badge-dot {

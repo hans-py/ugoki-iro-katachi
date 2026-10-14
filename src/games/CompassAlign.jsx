@@ -4,6 +4,7 @@ import { usePeerLink } from '../engines/usePeerLink.jsx';
 import { startMotionTone, updateMotionTone, stopMotionTone } from '../fx/audio.js';
 import ControllerView from '../screens/ControllerView.jsx';
 import CompassAlignVisual from './CompassAlignVisual.jsx';
+import { getHint } from '../data/hints.js';
 
 const DURATION_MS = 10000;
 const GOOD_DEG = 18; // within this many degrees of target counts as "aligned"
@@ -115,7 +116,7 @@ export default function CompassAlign({ onFinish, scene }) {
     };
   }, [finish, target, scene, send]);
 
-  const hint = isFallback ? '画面上でドラッグして回す' : 'スマホを水平に持って体ごと回す';
+  const hint = getHint('compassAlign', isFallback ? 'マウス操作' : '通常');
 
   if (connected) {
     return (

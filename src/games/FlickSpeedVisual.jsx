@@ -1,6 +1,7 @@
 import Particles from '../fx/Particles.jsx';
 import Impact from '../fx/Impact.jsx';
 import Hud from '../screens/Hud.jsx';
+import { getHint } from '../data/hints.js';
 
 const LABEL = { perfect: 'Perfect!', good: 'Good', miss: 'Miss' };
 
@@ -13,7 +14,7 @@ export default function FlickSpeedVisual({ scene, trial, trials, target, status,
         <div className="flick-arrow" style={{ transform: `rotate(${target}deg)` }} />
       </div>
 
-      {status === 'playing' && <p className="hint">矢印の向きへ、すばやくフリック</p>}
+      {status === 'playing' && <p className="hint">{getHint('flickSpeed', '通常')}</p>}
       {lastJudge && status === 'playing' && (
         <div key={judgeKey}>
           {lastJudge === 'perfect' && <Impact variant="micro" />}

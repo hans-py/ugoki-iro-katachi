@@ -1,4 +1,5 @@
 import TiltMazeVisual from '../TiltMazeVisual.jsx';
+import { getHint } from '../../data/hints.js';
 
 export default function TiltMazeView({ state }) {
   return (
@@ -7,7 +8,7 @@ export default function TiltMazeView({ state }) {
       timeLeft={state.timeLeft}
       ball={state.ball}
       status={state.status}
-      hint="スマホを傾けてボールをゴールへ"
+      hint={getHint('tiltMaze', '通常')}
       durationMs={state.durationMs}
     />
   );

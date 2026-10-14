@@ -13,6 +13,8 @@ export function parseTexts(raw) {
   const titles = [];
   const matches = [];
   const captions = {};
+  const hints = {};
+  const settings = {};
   let section = '';
   let game = null;
 
@@ -41,6 +43,11 @@ export function parseTexts(raw) {
       titles.push({ max: Number(key), label: value });
     } else if (section === '相性の称号' && /^\d+$/.test(key) && value) {
       matches.push({ min: Number(key), label: value });
+    } else if (section === 'ゲーム中のヒント') {
+      const m = key.match(/^(\w+)\.(.+)$/);
+      if (m) (hints[m[1]] ??= {})[m[2].trim()] = value;
+    } else if (section === '設定' && key === 'スチルをもらえる点数' && /^\d+$/.test(value)) {
+      settings.stillThreshold = Number(value);
     } else if (section === 'スチルの一言' && /^[\w-]+$/.test(key)) {
       captions[key] = value;
     }
@@ -51,5 +58,5 @@ export function parseTexts(raw) {
   if (games.length === 0 || titles.length === 0 || matches.length === 0) {
     throw new Error('src/content/texts.md の見出し(ゲームの文章 / 結果の称号 / 相性の称号)が見つかりません');
   }
-  return { games, titles, matches, captions };
+  return { games, titles, matches, captions, hints, settings };
 }

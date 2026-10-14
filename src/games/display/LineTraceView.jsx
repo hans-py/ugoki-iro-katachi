@@ -1,7 +1,8 @@
 import LineTraceVisual from '../LineTraceVisual.jsx';
+import { getHint } from '../../data/hints.js';
 
 export default function LineTraceView({ state }) {
-  const hint = state.progress > 0 ? 'そのままゴールまでなぞって' : '光る点(スタート)から指でなぞってね';
+  const hint = getHint('lineTrace', state.progress > 0 ? 'なぞり中' : '開始前');
   return (
     <LineTraceVisual
       scene={state.scene}

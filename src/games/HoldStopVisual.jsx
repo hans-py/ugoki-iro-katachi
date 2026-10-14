@@ -1,6 +1,7 @@
 import Particles from '../fx/Particles.jsx';
 import Impact from '../fx/Impact.jsx';
 import Hud from '../screens/Hud.jsx';
+import { getHint } from '../data/hints.js';
 
 const LABEL = { perfect: 'Perfect!', good: 'Good', miss: 'Miss' };
 
@@ -15,7 +16,7 @@ export default function HoldStopVisual({ scene, trial, trials, fill, status, las
         <div className="hold-fill" style={{ height: `${fill * 100}%` }} />
       </div>
 
-      {status === 'playing' && <p className="hint">押しっぱなしで貯めて、ねらった位置で離す</p>}
+      {status === 'playing' && <p className="hint">{getHint('holdStop', '通常')}</p>}
       {lastJudge && status === 'playing' && (
         <div key={judgeKey}>
           {lastJudge === 'perfect' && <Impact variant="micro" />}

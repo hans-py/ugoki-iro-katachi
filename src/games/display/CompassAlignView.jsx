@@ -1,4 +1,5 @@
 import CompassAlignVisual from '../CompassAlignVisual.jsx';
+import { getHint } from '../../data/hints.js';
 
 export default function CompassAlignView({ state }) {
   return (
@@ -10,7 +11,7 @@ export default function CompassAlignView({ state }) {
       heading={state.heading}
       holdProgress={state.holdProgress}
       status={state.status}
-      hint="スマホを水平に持って体ごと回す"
+      hint={getHint('compassAlign', '通常')}
       finalMinDiff={state.finalMinDiff}
     />
   );

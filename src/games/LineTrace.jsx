@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { usePeerLink } from '../engines/usePeerLink.jsx';
 import LineTraceVisual, { PATH_D } from './LineTraceVisual.jsx';
+import { getHint } from '../data/hints.js';
 
 const DURATION_MS = 8000;
 const SAMPLE_COUNT = 120;
@@ -131,7 +132,7 @@ export default function LineTrace({ onFinish, scene }) {
     };
   }, [registerPoint]);
 
-  const hint = progress > 0 ? 'あとをたどって' : '光る点から、たどって';
+  const hint = getHint('lineTrace', progress > 0 ? 'なぞり中' : '開始前');
 
   return (
     <>

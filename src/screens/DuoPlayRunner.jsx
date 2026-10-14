@@ -100,7 +100,7 @@ export default function DuoPlayRunner() {
           GAME {index + 1} / {playlist.length}
         </p>
         <p className="instruction-verb">じゅんび完了!</p>
-        <p className="lead">あいてを待っています…</p>
+        <p className="lead">みんなを待っています…</p>
       </div>
     );
   } else if (phase === 'instruction') {

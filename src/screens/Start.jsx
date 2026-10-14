@@ -10,7 +10,7 @@ export default function Start() {
   const navigate = useNavigate();
   const { requestPermission: requestTiltPermission } = useTilt();
   const { requestPermission: requestShakePermission } = useShake();
-  const { connected, leaveRoom } = usePeerLink();
+  const { connected, joinError, leaveRoom } = usePeerLink();
   const [starting, setStarting] = useState(false);
   const [showDuoSelect, setShowDuoSelect] = useState(false);
 
@@ -79,9 +79,13 @@ export default function Start() {
             {connected ? (starting ? '準備中…' : '一人で遊ぶ') : 'ディスプレイにつないで遊ぶ'}
           </button>
           <button className="secondary-button" onClick={() => setShowDuoSelect(true)} disabled={starting}>
-            二人で遊ぶ
+            みんなで遊ぶ(2〜4人)
           </button>
         </div>
+      )}
+
+      {joinError && (
+        <p className="hint">このルームは満員か、もう始まっています。ディスプレイを確認してね</p>
       )}
 
       {showDuoSelect && (
@@ -95,7 +99,7 @@ export default function Start() {
           <button className="secondary-button" onClick={() => setShowDuoSelect(false)} disabled={starting}>
             もどる
           </button>
-          <p className="hint">二人ともスマホを1台ずつ用意して、同じディスプレイのQRを読み取ってね</p>
+          <p className="hint">全員がスマホを1台ずつ用意して、同じディスプレイのQRを読み取ってね。全員つながってから「じゅんび完了」を押してね</p>
         </div>
       )}
     </div>

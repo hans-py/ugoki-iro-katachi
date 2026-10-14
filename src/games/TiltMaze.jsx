@@ -3,6 +3,7 @@ import { useTilt } from '../engines/useTilt.jsx';
 import { usePeerLink } from '../engines/usePeerLink.jsx';
 import { startMotionTone, updateMotionTone, stopMotionTone } from '../fx/audio.js';
 import ControllerView from '../screens/ControllerView.jsx';
+import { getHint } from '../data/hints.js';
 import TiltMazeVisual, {
   BALL_RADIUS,
   GOAL,
@@ -143,7 +144,7 @@ export default function TiltMaze({ onFinish, scene }) {
     };
   }, [finish, scene, send]);
 
-  const hint = isFallback ? 'マウス/指で傾けて' : 'みつからないうちに';
+  const hint = getHint('tiltMaze', isFallback ? 'マウス操作' : '通常');
 
   if (connected) {
     return (

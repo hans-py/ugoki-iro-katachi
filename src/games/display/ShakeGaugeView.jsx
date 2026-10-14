@@ -1,4 +1,5 @@
 import ShakeGaugeVisual from '../ShakeGaugeVisual.jsx';
+import { getHint } from '../../data/hints.js';
 
 export default function ShakeGaugeView({ state }) {
   return (
@@ -7,7 +8,7 @@ export default function ShakeGaugeView({ state }) {
       timeLeft={state.timeLeft}
       gauge={state.gauge}
       status={state.status}
-      hint="スマホを揺すってゲージを満タンに"
+      hint={getHint('shakeGauge', '通常')}
     />
   );
 }

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { usePeerLink } from '../engines/usePeerLink.jsx';
 import ControllerView from '../screens/ControllerView.jsx';
 import SmoothLiftVisual from './SmoothLiftVisual.jsx';
+import { getHint } from '../data/hints.js';
 
 const WINDOW_MS = 2600;
 const MIN_SAMPLES = 8;
@@ -100,8 +101,7 @@ export default function SmoothLift({ onFinish, scene }) {
     };
   }, [handleMotion, handlePointerMove, finish, scene, send]);
 
-  const phase = progress < 0.5 ? '持ち上げて…' : 'おろして…';
-  const hint = isFallback ? '指でゆっくりなぞって' : phase;
+  const hint = getHint('smoothLift', isFallback ? 'マウス操作' : progress < 0.5 ? '上げ' : '下げ');
 
   if (connected) {
     return <ControllerView scene={scene} message={status === 'playing' ? hint : `計測完了 ${finalScore}`} />;

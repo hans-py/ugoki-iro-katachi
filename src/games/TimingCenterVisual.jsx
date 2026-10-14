@@ -1,6 +1,7 @@
 import Particles from '../fx/Particles.jsx';
 import Impact from '../fx/Impact.jsx';
 import Hud from '../screens/Hud.jsx';
+import { getHint } from '../data/hints.js';
 
 const LABEL = { perfect: 'Perfect!', good: 'Good', miss: 'Miss' };
 
@@ -15,7 +16,7 @@ export default function TimingCenterVisual({ scene, trial, trials, position, sta
         <div className="timing-marker" style={{ left: `${position * 100}%` }} />
       </div>
 
-      {status === 'playing' && <p className="hint">画面をタップ — ど真ん中を狙え</p>}
+      {status === 'playing' && <p className="hint">{getHint('timingCenter', '通常')}</p>}
       {lastJudge && status === 'playing' && (
         <div key={judgeKey}>
           {lastJudge === 'perfect' && <Impact variant="micro" />}

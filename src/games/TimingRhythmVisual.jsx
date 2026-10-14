@@ -1,6 +1,7 @@
 import Particles from '../fx/Particles.jsx';
 import Impact from '../fx/Impact.jsx';
 import Hud from '../screens/Hud.jsx';
+import { getHint } from '../data/hints.js';
 
 const LABEL = { perfect: 'Perfect!', good: 'Good', miss: 'Miss' };
 const TARGET_SIZE = 64;
@@ -23,7 +24,7 @@ export default function TimingRhythmVisual({ scene, beatIndex, rounds, combo, ri
         <div className="rhythm-ring-approach" style={{ width: approachSize, height: approachSize }} />
       </div>
 
-      {status === 'playing' && <p className="hint">リングが重なった瞬間にタップ</p>}
+      {status === 'playing' && <p className="hint">{getHint('timingRhythm', '通常')}</p>}
       {lastJudge && status === 'playing' && (
         <div key={judgeKey}>
           {lastJudge === 'perfect' && <Impact variant="micro" />}

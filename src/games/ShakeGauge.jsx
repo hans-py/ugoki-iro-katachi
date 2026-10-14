@@ -4,6 +4,7 @@ import { usePeerLink } from '../engines/usePeerLink.jsx';
 import { playChime } from '../fx/audio.js';
 import ControllerView from '../screens/ControllerView.jsx';
 import ShakeGaugeVisual from './ShakeGaugeVisual.jsx';
+import { getHint } from '../data/hints.js';
 
 const DURATION_MS = 5000;
 const TARGET_SHAKES = 20;
@@ -54,7 +55,7 @@ export default function ShakeGauge({ onFinish, scene }) {
   }, [onFinish, scene, send]);
 
   const gauge = Math.min(100, Math.round((shakeCount / TARGET_SHAKES) * 100));
-  const hint = isFallback ? '連打してゲージを満タンに' : 'スマホを揺すってゲージを満タンに';
+  const hint = getHint('shakeGauge', isFallback ? 'マウス操作' : '通常');
 
   if (connected) {
     return <ControllerView scene={scene} message={status === 'playing' ? hint : `計測完了 ${gauge}%`} />;

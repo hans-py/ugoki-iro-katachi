@@ -1,4 +1,6 @@
-import { STILL_CAPTIONS } from './titles.js';
+import { STILL_CAPTIONS, STILL_THRESHOLD } from './titles.js';
+
+export { STILL_THRESHOLD };
 
 // Drop images (png/jpg/webp/gif/svg) or short loops (mp4/webm) into
 // src/assets/stills/ and they appear automatically — the file name (minus
@@ -10,9 +12,6 @@ const modules = import.meta.glob('../assets/stills/*.{png,jpg,jpeg,webp,gif,svg,
   query: '?url',
   import: 'default',
 });
-
-// A session's total (out of 500) needed to earn a still.
-export const STILL_THRESHOLD = 300;
 
 const FINAL_ID = 'final';
 

@@ -1,6 +1,7 @@
 import Particles from '../fx/Particles.jsx';
 import Impact from '../fx/Impact.jsx';
 import Hud from '../screens/Hud.jsx';
+import { getHint } from '../data/hints.js';
 
 export default function PolyClapVisual({
   scene,
@@ -41,9 +42,7 @@ export default function PolyClapVisual({
 
       {status === 'playing' && (
         <p className="hint">
-          {timeLeft > durationMs - leadInMs
-            ? '輪が縮みきったタイミングでタップ、まもなくスタート'
-            : '左手は2拍子、右手は3拍子。輪が縮みきった瞬間にタップ'}
+          {getHint('polyClap', timeLeft > durationMs - leadInMs ? '開始前' : 'プレイ中')}
         </p>
       )}
 

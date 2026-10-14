@@ -4,6 +4,7 @@ import { usePeerLink } from '../engines/usePeerLink.jsx';
 import { playChime, startMotionTone, updateMotionTone, stopMotionTone } from '../fx/audio.js';
 import TiltFillVisual from './TiltFillVisual.jsx';
 import ControllerView from '../screens/ControllerView.jsx';
+import { getHint } from '../data/hints.js';
 
 const DURATION_MS = 8000;
 const MIN_POUR = 0.15; // tilt magnitude below this: nothing pours
@@ -95,7 +96,7 @@ export default function TiltFill({ onFinish, scene }) {
     };
   }, [finish, scene, send]);
 
-  const hint = pouring ? 'ゆっくり…' : isFallback ? 'マウス/指で傾けて' : 'こぼしたら、バレる';
+  const hint = pouring ? getHint('tiltFill', '注ぎ中') : getHint('tiltFill', isFallback ? 'マウス操作' : '待機中');
 
   if (connected) {
     return (
