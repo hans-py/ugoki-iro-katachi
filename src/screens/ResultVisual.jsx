@@ -6,7 +6,7 @@ import Impact from '../fx/Impact.jsx';
 // display's mirrored result screen (paired play) — `onRestart` is only
 // passed by the phone, since the display has no "もう一度" of its own to
 // press.
-export default function ResultVisual({ title, total, scores, onRestart }) {
+export default function ResultVisual({ title, total, scores, onRestart, children }) {
   return (
     <div className="screen result-screen scene-grass">
       <div className="particles-layer">
@@ -31,6 +31,8 @@ export default function ResultVisual({ title, total, scores, onRestart }) {
           );
         })}
       </ul>
+
+      {children}
 
       {onRestart && (
         <button className="primary-button" onClick={onRestart}>

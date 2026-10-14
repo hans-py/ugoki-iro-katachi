@@ -17,6 +17,9 @@ const CAPTIONS = {
   final: '',
 };
 
+// A session's total (out of 500) needed to earn a still.
+export const STILL_THRESHOLD = 300;
+
 const FINAL_ID = 'final';
 
 const ALL = Object.entries(modules)

@@ -83,7 +83,7 @@ export default function DuoPlayRunner() {
     const total = scores.reduce((a, b) => a + b.score, 0);
     screen = (
       <ControllerView scene={scene} message="けっか発表!" sub={`ディスプレイを見てね(あなたの合計 ${total})`}>
-        <ResultStill />
+        <ResultStill total={total} />
       </ControllerView>
     );
   } else if (phase === 'waitingPartner') {

@@ -67,10 +67,14 @@ export default function Result() {
         actionLabel="もう一度"
         onAction={restart}
       >
-        <ResultStill />
+        <ResultStill total={total} />
       </ControllerView>
     );
   }
 
-  return <ResultVisual title={title} total={total} scores={scores} onRestart={restart} />;
+  return (
+    <ResultVisual title={title} total={total} scores={scores} onRestart={restart}>
+      <ResultStill total={total} />
+    </ResultVisual>
+  );
 }

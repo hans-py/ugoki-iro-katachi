@@ -1,18 +1,32 @@
 import { useEffect, useState } from 'react';
-import { pickStill, recordSeen } from '../data/stills.js';
+import { STILL_THRESHOLD, pickStill, recordSeen } from '../data/stills.js';
 
-// A random still shown at the end of a session, on the phone that played it.
-// Which stills a phone has found is remembered on that phone, so replaying
-// keeps turning up new ones until the set is complete.
-export default function ResultStill() {
-  const [draw] = useState(() => pickStill());
+// What a finished session earns on the phone that played it: a random still
+// if the total reached STILL_THRESHOLD, otherwise a locked silhouette showing
+// how far off it was. Which stills a phone has found is remembered on that
+// phone, so replaying keeps turning up new ones until the set is complete.
+export default function ResultStill({ total }) {
+  const earned = total >= STILL_THRESHOLD;
+  const [draw] = useState(() => (earned ? pickStill() : null));
 
   useEffect(() => {
     if (draw) recordSeen(draw.still.id);
   }, [draw]);
 
+  if (!earned) {
+    return (
+      <figure className="still-card">
+        <div className="still-frame still-locked">
+          <span className="still-lock-mark">?</span>
+          <span className="still-scan" />
+        </div>
+        <p className="still-count">あと {STILL_THRESHOLD - total} 点で、見られる</p>
+      </figure>
+    );
+  }
+
   if (!draw) return null;
-  const { still, isNew, isFinal, seenCount, total, complete } = draw;
+  const { still, isNew, isFinal, seenCount, total: poolTotal, complete } = draw;
 
   return (
     <figure className="still-card">
@@ -26,9 +40,7 @@ export default function ResultStill() {
         {(isNew || isFinal) && <span className="still-new">{isFinal ? 'FINAL' : 'NEW'}</span>}
       </div>
       {still.caption && <figcaption className="still-caption">{still.caption}</figcaption>}
-      <p className="still-count">
-        {complete ? 'COMPLETE' : `${seenCount} / ${total}`}
-      </p>
+      <p className="still-count">{complete ? 'COMPLETE' : `${seenCount} / ${poolTotal}`}</p>
     </figure>
   );
 }

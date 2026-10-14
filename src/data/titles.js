@@ -145,10 +145,10 @@ export function pickRandomGamesSeeded(seed) {
 }
 
 const TITLE_TABLE = [
-  { max: 150, label: '動きのたまご' },
-  { max: 300, label: '動きのみならい' },
-  { max: 400, label: '動きのつかい手' },
-  { max: 500, label: '動きのマスター' },
+  { max: 150, label: 'だれかに、見られている' },
+  { max: 300, label: 'まだ、気づかれていない' },
+  { max: 400, label: '上手に隠せました' },
+  { max: 500, label: '何も、なかったことに' },
 ];
 
 export function getTitle(total) {
@@ -156,10 +156,10 @@ export function getTitle(total) {
 }
 
 const MATCH_TABLE = [
-  { min: 85, label: '運命のふたり' },
-  { min: 65, label: 'いい相性' },
-  { min: 40, label: 'ぼちぼち相性' },
-  { min: 0, label: 'まだまだこれから' },
+  { min: 85, label: '同じ穴の、ふたり' },
+  { min: 65, label: 'きっと、共犯者' },
+  { min: 40, label: 'お互い、まだ疑っている' },
+  { min: 0, label: '他人のふりをしよう' },
 ];
 
 export function getMatchLabel(percent) {

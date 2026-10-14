@@ -20,23 +20,13 @@
   --blood-deep: #b80000;
   --void: #0b0b0f;
 
-  /* Horror palette: blackish red / deep-sea blue / soil / alarm red. Text
-     sitting directly on a scene uses --on-scene (light); chips keep the
-     cream surface + dark ink. */
-  --scene-coral: #3d0a12;
-  --scene-cobalt: #082a40;
-  --scene-grass: #3b2a1c;
-  --scene-magenta: #d1101c;
-  --scene-pop: #ff6a3d;
-  --scene-pop-cobalt: #5b7cff;
-  --scene-pop-grass: #2ed66b;
-  --scene-pop-magenta: #ff3d9a;
-  --scene-mold: #3e5b2e;
-  --scene-rust: #8a3a14;
-  --scene-bruise: #3a1850;
-  --on-scene: #fff6e9;
-  --on-scene-dim: rgba(255, 246, 233, 0.7);
-  --shape-accent: var(--blood);
+  --scene-coral: #ff6a3d;
+  --scene-cobalt: #5b7cff;
+  --scene-grass: #2ed66b;
+  --scene-magenta: #ff3d9a;
+  --on-scene: var(--ink);
+  --on-scene-dim: var(--ink-dim);
+  --shape-accent: var(--surface);
 
   --font-display: 'Dela Gothic One', 'Hiragino Sans', system-ui, sans-serif;
   --font-body: 'M PLUS Rounded 1c', 'Hiragino Sans', system-ui, sans-serif;
@@ -81,27 +71,7 @@ body {
 .scene-coral { background: var(--scene-coral); }
 .scene-cobalt { background: var(--scene-cobalt); }
 .scene-grass { background: var(--scene-grass); }
-.scene-magenta { background: var(--scene-magenta); --shape-accent: var(--void); }
-/* The entry screens (Start, scan, idle display) stay bright and ordinary —
-   the horror only starts once a game does. */
-.scene-pop,
-.scene-cycle-pop {
-  --on-scene: var(--ink);
-  --on-scene-dim: var(--ink-dim);
-  --shape-accent: var(--surface);
-}
-.scene-pop { background: var(--scene-pop); }
-.scene-cycle-pop { animation: scene-cycle-pop 28s linear infinite; }
-@keyframes scene-cycle-pop {
-  0%, 20% { background-color: var(--scene-pop); }
-  25%, 45% { background-color: var(--scene-pop-cobalt); }
-  50%, 70% { background-color: var(--scene-pop-grass); }
-  75%, 95% { background-color: var(--scene-pop-magenta); }
-  100% { background-color: var(--scene-pop); }
-}
-.scene-mold { background: var(--scene-mold); }
-.scene-rust { background: var(--scene-rust); --shape-accent: var(--void); }
-.scene-bruise { background: var(--scene-bruise); }
+.scene-magenta { background: var(--scene-magenta); }
 
 .screen {
   position: relative;
@@ -1293,7 +1263,7 @@ body {
   poster with a QR code on it".
 */
 .scene-cycle {
-  animation: scene-cycle 49s linear infinite;
+  animation: scene-cycle 28s linear infinite;
 }
 
 .display-screen {
@@ -1349,13 +1319,10 @@ body {
 }
 
 @keyframes scene-cycle {
-  0%, 11% { background-color: var(--scene-coral); }
-  14.3%, 25% { background-color: var(--scene-cobalt); }
-  28.6%, 39% { background-color: var(--scene-mold); }
-  42.9%, 53% { background-color: var(--scene-grass); }
-  57.2%, 67% { background-color: var(--scene-bruise); }
-  71.5%, 82% { background-color: var(--scene-rust); }
-  85.8%, 96% { background-color: var(--scene-magenta); }
+  0%, 20% { background-color: var(--scene-coral); }
+  25%, 45% { background-color: var(--scene-cobalt); }
+  50%, 70% { background-color: var(--scene-grass); }
+  75%, 95% { background-color: var(--scene-magenta); }
   100% { background-color: var(--scene-coral); }
 }
 
@@ -1771,4 +1738,29 @@ body {
 
 .controller-view .lead {
   position: relative;
+}
+
+.still-locked {
+  width: min(60vw, 240px);
+  aspect-ratio: 3 / 4;
+  max-height: 34dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  filter: none;
+}
+
+.still-lock-mark {
+  font-family: var(--font-display);
+  font-size: 4rem;
+  color: var(--blood);
+}
+
+/* The standalone result screen also carries the score breakdown, so the
+   still gets less height there to keep the button on screen. */
+.result-screen .still-frame,
+.result-screen .still-frame img,
+.result-screen .still-frame video,
+.result-screen .still-locked {
+  max-height: 24dvh;
 }

@@ -10,7 +10,7 @@ export default function Start() {
   const navigate = useNavigate();
   const { requestPermission: requestTiltPermission } = useTilt();
   const { requestPermission: requestShakePermission } = useShake();
-  const { connected } = usePeerLink();
+  const { connected, leaveRoom } = usePeerLink();
   const [starting, setStarting] = useState(false);
   const [showDuoSelect, setShowDuoSelect] = useState(false);
 
@@ -30,6 +30,18 @@ export default function Start() {
     navigate(connected ? '/play' : '/scan');
   };
 
+  // Plays entirely on this phone — each game falls back to its own on-screen
+  // visual when nothing is paired. A phone that already joined a display's
+  // room is dropped from it first, otherwise the games would keep acting as
+  // a remote controller for that display.
+  const handlePhoneOnly = async () => {
+    if (starting) return;
+    setStarting(true);
+    await preparePlayer();
+    leaveRoom();
+    navigate('/play');
+  };
+
   const handleDuoMode = async (mode) => {
     if (starting) return;
     setStarting(true);
@@ -38,7 +50,7 @@ export default function Start() {
   };
 
   return (
-    <div className="screen start-screen scene-pop">
+    <div className="screen start-screen scene-coral">
       <div className="phone-ambient">
         <span className="ambient-shape ambient-tri ambient-tri-2" />
         <span className="ambient-shape ambient-circle" />
@@ -54,8 +66,17 @@ export default function Start() {
 
       {!showDuoSelect && (
         <div className="mode-select">
-          <button className="primary-button" onClick={handleSoloPlay} disabled={starting}>
-            {starting ? '準備中…' : '一人で遊ぶ'}
+          {!connected && (
+            <button className="primary-button" onClick={handlePhoneOnly} disabled={starting}>
+              {starting ? '準備中…' : 'スマホだけで遊ぶ'}
+            </button>
+          )}
+          <button
+            className={connected ? 'primary-button' : 'secondary-button'}
+            onClick={handleSoloPlay}
+            disabled={starting}
+          >
+            {connected ? (starting ? '準備中…' : '一人で遊ぶ') : 'ディスプレイにつないで遊ぶ'}
           </button>
           <button className="secondary-button" onClick={() => setShowDuoSelect(true)} disabled={starting}>
             二人で遊ぶ
