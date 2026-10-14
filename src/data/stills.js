@@ -1,3 +1,5 @@
+import { STILL_CAPTIONS } from './titles.js';
+
 // Drop images (png/jpg/webp/gif/svg) or short loops (mp4/webm) into
 // src/assets/stills/ and they appear automatically — the file name (minus
 // extension) is the id. The file named "final" is special: it is held back
@@ -9,14 +11,6 @@ const modules = import.meta.glob('../assets/stills/*.{png,jpg,jpeg,webp,gif,svg,
   import: 'default',
 });
 
-// Optional one-line captions, keyed by file name without extension.
-const CAPTIONS = {
-  '01': '',
-  '02': '',
-  '03': '',
-  final: '',
-};
-
 // A session's total (out of 500) needed to earn a still.
 export const STILL_THRESHOLD = 300;
 
@@ -27,7 +21,7 @@ const ALL = Object.entries(modules)
   .map(([path, src]) => {
     const file = path.split('/').pop();
     const id = file.replace(/\.[^.]+$/, '');
-    return { id, src, caption: CAPTIONS[id] ?? '', isVideo: /\.(mp4|webm)$/i.test(file) };
+    return { id, src, caption: STILL_CAPTIONS[id] ?? '', isVideo: /\.(mp4|webm)$/i.test(file) };
   });
 
 export const POOL = ALL.filter((s) => s.id !== FINAL_ID);
