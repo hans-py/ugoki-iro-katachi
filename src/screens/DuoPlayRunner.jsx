@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { usePeerLink } from '../engines/usePeerLink.jsx';
-import { pickRandomGamesSeeded } from '../data/titles.js';
+import { hashString, pickRandomGamesSeeded } from '../data/titles.js';
 import { GAME_COMPONENTS, SCENES } from '../games/gameRegistry.js';
 import { vibrateGrandImpact } from '../fx/haptics.js';
 import { getNickname } from '../data/nicknames.js';
@@ -75,7 +75,7 @@ export default function DuoPlayRunner() {
   }, [phase, leaveRoom, navigate]);
 
   const game = playlist[index];
-  const scene = SCENES[index % SCENES.length];
+  const scene = SCENES[(index + (Math.abs(hashString(String(roomId))) % SCENES.length)) % SCENES.length];
   const me = mySlot ? getNickname(roomId, mySlot) : null;
 
   let screen;

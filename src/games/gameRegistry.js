@@ -42,11 +42,11 @@ export const GAME_COMPONENTS = {
   smoothLift: SmoothLift,
 };
 
-// The four vivid "scene" backgrounds, cycled by playlist position so
+// The seven "scene" backgrounds (a session uses five, starting at a per-session offset so every color turns up over time), cycled by playlist position so
 // consecutive rounds read like cuts between scenes in a motion-graphics
 // reel — instruction card, GO flash and the game itself all share one
 // scene's color for continuity.
-export const SCENES = ['coral', 'cobalt', 'grass', 'magenta'];
+export const SCENES = ['coral', 'cobalt', 'mold', 'grass', 'bruise', 'rust', 'magenta'];
 
 // Games that know how to render themselves on the display from a phone's
 // broadcast state — shared by the solo Display (one panel) and the duo

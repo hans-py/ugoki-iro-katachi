@@ -20,6 +20,7 @@ function GameRunner() {
   const navigate = useNavigate();
   const [playlist] = useState(pickRandomGames);
   const [index, setIndex] = useState(0);
+  const [sceneOffset] = useState(() => Math.floor(Math.random() * SCENES.length));
   const [scores, setScores] = useState([]);
   const [phase, setPhase] = useState('instruction'); // 'instruction' | 'go' | 'playing'
 
@@ -40,7 +41,7 @@ function GameRunner() {
   );
 
   const game = playlist[index];
-  const scene = SCENES[index % SCENES.length];
+  const scene = SCENES[(index + sceneOffset) % SCENES.length];
 
   if (phase === 'instruction') {
     return (

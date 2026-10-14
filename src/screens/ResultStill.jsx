@@ -12,7 +12,7 @@ export default function ResultStill() {
   }, [draw]);
 
   if (!draw) return null;
-  const { still, isNew, seenCount, total } = draw;
+  const { still, isNew, isFinal, seenCount, total, complete } = draw;
 
   return (
     <figure className="still-card">
@@ -23,11 +23,11 @@ export default function ResultStill() {
           <img src={still.src} alt="" />
         )}
         <span className="still-scan" />
-        {isNew && <span className="still-new">NEW</span>}
+        {(isNew || isFinal) && <span className="still-new">{isFinal ? 'FINAL' : 'NEW'}</span>}
       </div>
       {still.caption && <figcaption className="still-caption">{still.caption}</figcaption>}
       <p className="still-count">
-        {seenCount} / {total}
+        {complete ? 'COMPLETE' : `${seenCount} / ${total}`}
       </p>
     </figure>
   );

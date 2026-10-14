@@ -38,7 +38,7 @@ export default function Start() {
   };
 
   return (
-    <div className="screen start-screen scene-coral">
+    <div className="screen start-screen scene-pop">
       <div className="phone-ambient">
         <span className="ambient-shape ambient-tri ambient-tri-2" />
         <span className="ambient-shape ambient-circle" />

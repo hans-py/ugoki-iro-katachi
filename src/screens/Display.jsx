@@ -58,7 +58,7 @@ export default function Display() {
   const joinUrl = roomId ? `${window.location.origin}${import.meta.env.BASE_URL}?room=${roomId}` : null;
 
   return (
-    <div className="screen display-screen scene-cycle">
+    <div className="screen display-screen scene-cycle-pop">
       <div className="display-ambient">
         <span className="ambient-shape ambient-tri" />
         <span className="ambient-shape ambient-circle" />

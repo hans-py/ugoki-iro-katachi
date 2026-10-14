@@ -102,7 +102,7 @@ export default function ScanQr() {
   };
 
   return (
-    <div className="screen scan-screen scene-coral">
+    <div className="screen scan-screen scene-pop">
       <div className="phone-ambient">
         <span className="ambient-shape ambient-square" />
         <span className="ambient-shape ambient-tri ambient-tri-2" />
