@@ -103,7 +103,7 @@ export default function Display() {
         <span className="ambient-shape ambient-bar ambient-bar-2" />
         <span className="ambient-shape ambient-square ambient-square-2" />
       </div>
-      <p className="eyebrow">{connected ? 'connected — waiting to start' : 'scan to play'}</p>
+      {connected && <p className="eyebrow">つながりました</p>}
       <h1>うごき、いろ、かたち。</h1>
       <div className="qr-frame">
         {joinUrl ? <QrCode value={joinUrl} size={420} /> : <p className="qr-placeholder">起動中…</p>}

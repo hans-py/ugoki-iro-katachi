@@ -25,7 +25,7 @@ export default function HandleSteerVisual({
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerCancel}
     >
-      <Hud items={[{ label: 'TIME', value: `${(timeLeft / 1000).toFixed(1)}s` }, { label: 'DIFF', value: `${Math.round(diff)}°` }]} />
+      <Hud items={[{ label: 'のこり', value: `${(timeLeft / 1000).toFixed(1)}s` }, { label: 'ずれ', value: `${Math.round(diff)}°` }]} />
 
       <div className="compass-dial">
         <span className="steer-trunk" />

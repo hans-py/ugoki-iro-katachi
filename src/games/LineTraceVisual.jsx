@@ -4,6 +4,22 @@ import Impact from '../fx/Impact.jsx';
 
 export const PATH_D = 'M 30 40 C 30 150, 190 150, 190 260 C 190 350, 30 350, 30 390';
 
+// Direction chevrons spaced along the path (start is the top, goal the bottom),
+// so which way to trace is readable without relying on the start dot alone.
+function pathArrows(count) {
+  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  path.setAttribute('d', PATH_D);
+  const length = path.getTotalLength();
+  return Array.from({ length: count }, (_, i) => {
+    const at = (length * (i + 1)) / (count + 1);
+    const a = path.getPointAtLength(at);
+    const b = path.getPointAtLength(at + 1);
+    return { x: a.x, y: a.y, angle: (Math.atan2(b.y - a.y, b.x - a.x) * 180) / Math.PI };
+  });
+}
+
+const ARROWS = pathArrows(5);
+
 // forwardRef so the phone's own instance (LineTrace.jsx) can measure
 // `.trace-frame`'s on-screen rect for pointer hit-testing — the display's
 // mirrored instance never passes a ref since it isn't touch-interactive.
@@ -15,14 +31,22 @@ const LineTraceVisual = forwardRef(function LineTraceVisual(
     <div className={`game-screen line-trace scene-${scene}`}>
       <Hud
         items={[
-          { label: 'TIME', value: `${(timeLeft / 1000).toFixed(1)}s` },
-          { label: 'PROGRESS', value: `${Math.round(progress * 100)}%` },
+          { label: 'のこり', value: `${(timeLeft / 1000).toFixed(1)}s` },
+          { label: '進み', value: `${Math.round(progress * 100)}%` },
         ]}
       />
 
       <div ref={frameRef} className="trace-frame" onPointerDown={onPointerDown}>
         <svg viewBox="0 0 220 420" className="trace-svg">
           <path d={PATH_D} className="trace-path-bg" />
+          {ARROWS.map((a, i) => (
+            <polygon
+              key={i}
+              points="-9,-9 9,0 -9,9"
+              className="trace-arrow"
+              transform={`translate(${a.x} ${a.y}) rotate(${a.angle})`}
+            />
+          ))}
           <path
             d={PATH_D}
             className="trace-path-progress"

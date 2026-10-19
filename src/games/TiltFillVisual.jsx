@@ -11,8 +11,8 @@ export default function TiltFillVisual({ scene, timeLeft, fill, spilling, pourin
     <div className={`game-screen tilt-fill scene-${scene}`}>
       <Hud
         items={[
-          { label: 'TIME', value: `${Math.ceil(timeLeft / 1000)}s` },
-          { label: 'FILL', value: `${Math.round(fill)}%` },
+          { label: 'のこり', value: `${Math.ceil(timeLeft / 1000)}s` },
+          { label: 'たまり', value: `${Math.round(fill)}%` },
         ]}
       />
 

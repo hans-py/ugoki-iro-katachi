@@ -60,7 +60,6 @@ export default function Start() {
       <div className="particles-layer">
         <Particles mode="idle" color="#FFF6E9" />
       </div>
-      <p className="eyebrow">motion mini games</p>
       <h1>うごき、いろ、かたち。</h1>
       <p className="lead">傾ける、狙う、刻む、揺する。</p>
 

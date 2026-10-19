@@ -14,8 +14,8 @@ export default function TimingRhythmVisual({ scene, beatIndex, rounds, combo, ri
     <div className={`game-screen timing-rhythm scene-${scene}`} onPointerDown={onPointerDown}>
       <Hud
         items={[
-          { label: 'BEAT', value: `${Math.min(beatIndex + 1, rounds)}/${rounds}` },
-          { label: 'COMBO', value: `x${combo}` },
+          { label: '拍', value: `${Math.min(beatIndex + 1, rounds)}/${rounds}` },
+          { label: 'コンボ', value: `x${combo}` },
         ]}
       />
 

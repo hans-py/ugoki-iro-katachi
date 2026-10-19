@@ -8,7 +8,7 @@ const LABEL = { perfect: 'Perfect!', good: 'Good', miss: 'Miss' };
 export default function TimingCenterVisual({ scene, trial, trials, position, status, lastJudge, judgeKey, averageScore, onPointerDown }) {
   return (
     <div className={`game-screen timing-center scene-${scene}`} onPointerDown={onPointerDown}>
-      <Hud items={[{ label: 'TRIAL', value: `${Math.min(trial + 1, trials)}/${trials}` }]} />
+      <Hud items={[{ label: '回', value: `${Math.min(trial + 1, trials)}/${trials}` }]} />
 
       <div className="timing-track">
         <div className="timing-zone-good" />

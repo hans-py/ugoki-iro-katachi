@@ -6,7 +6,7 @@ export default function SmoothLiftVisual({ scene, progress, status, hint, finalS
 
   return (
     <div className={`game-screen smooth-lift scene-${scene}`}>
-      <Hud items={[{ label: 'PHASE', value: progress < 0.5 ? 'UP' : 'DOWN' }]} />
+      <Hud items={[{ label: 'いま', value: progress < 0.5 ? 'あげる' : 'さげる' }]} />
 
       <div className="lift-guide-wrap">
         <svg className="lift-blanket" viewBox="0 0 160 160" style={{ transform: `scale(${guideScale})` }} aria-hidden="true">

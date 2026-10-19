@@ -23,9 +23,9 @@ export default function PolyClapVisual({
     <div className={`game-screen poly-clap scene-${scene}`}>
       <Hud
         items={[
-          { label: 'TIME', value: `${(timeLeft / 1000).toFixed(1)}s` },
-          { label: 'L', value: `x${leftCombo}` },
-          { label: 'R', value: `x${rightCombo}` },
+          { label: 'のこり', value: `${(timeLeft / 1000).toFixed(1)}s` },
+          { label: '左', value: `x${leftCombo}` },
+          { label: '右', value: `x${rightCombo}` },
         ]}
       />
 

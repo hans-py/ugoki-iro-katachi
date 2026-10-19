@@ -5,7 +5,7 @@ import Hud from '../screens/Hud.jsx';
 export default function ShakeGaugeVisual({ scene, timeLeft, gauge, status, hint }) {
   return (
     <div className={`game-screen shake-gauge scene-${scene}`}>
-      <Hud items={[{ label: 'TIME', value: `${(timeLeft / 1000).toFixed(1)}s` }, { label: 'GAUGE', value: `${gauge}%` }]} />
+      <Hud items={[{ label: 'のこり', value: `${(timeLeft / 1000).toFixed(1)}s` }, { label: 'ゲージ', value: `${gauge}%` }]} />
 
       <div className="gauge-tube">
         <div className={`gauge-fill ${gauge >= 100 ? 'gauge-full' : ''}`} style={{ height: `${gauge}%` }} />

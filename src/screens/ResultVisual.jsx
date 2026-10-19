@@ -13,7 +13,6 @@ export default function ResultVisual({ title, total, scores, onRestart, children
         <Particles mode="burst" active color="#FFF6E9" />
       </div>
       <Impact variant="grand" />
-      <p className="eyebrow">result</p>
       <h1 className="result-title">{title}</h1>
       <p className="total-score">
         {total}

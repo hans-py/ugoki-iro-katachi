@@ -92,7 +92,7 @@ export default function DuoPlayRunner() {
           <span className="ambient-shape ambient-circle ambient-circle-2" />
         </div>
         <p className="eyebrow">
-          GAME {index + 1} / {playlist.length}
+          {index + 1} / {playlist.length} ゲーム目
         </p>
         <p className="instruction-verb">じゅんび完了!</p>
         <p className="lead">みんなを待っています…</p>

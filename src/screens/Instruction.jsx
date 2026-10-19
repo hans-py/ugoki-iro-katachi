@@ -19,7 +19,7 @@ export default function Instruction({ game, index, total, scene, onStart, button
         <span className="ambient-shape ambient-circle ambient-circle-2" />
       </div>
       <p className="eyebrow">
-        GAME {index + 1} / {total}
+        {index + 1} / {total} ゲーム目
       </p>
       <p className="instruction-verb">{game.verb}</p>
       <p className="lead">{game.instruction}</p>

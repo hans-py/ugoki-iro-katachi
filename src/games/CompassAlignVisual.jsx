@@ -4,7 +4,7 @@ import Impact from '../fx/Impact.jsx';
 export default function CompassAlignVisual({ scene, timeLeft, diff, target, heading, holdProgress, status, hint, finalMinDiff }) {
   return (
     <div className={`game-screen compass-align scene-${scene}`}>
-      <Hud items={[{ label: 'TIME', value: `${(timeLeft / 1000).toFixed(1)}s` }, { label: 'DIFF', value: `${Math.round(diff)}°` }]} />
+      <Hud items={[{ label: 'のこり', value: `${(timeLeft / 1000).toFixed(1)}s` }, { label: 'ずれ', value: `${Math.round(diff)}°` }]} />
 
       <div className="compass-dial">
         <div className="compass-target" style={{ transform: `rotate(${target}deg)` }} />

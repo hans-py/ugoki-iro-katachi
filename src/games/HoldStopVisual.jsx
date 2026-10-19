@@ -8,7 +8,7 @@ const LABEL = { perfect: 'Perfect!', good: 'Good', miss: 'Miss' };
 export default function HoldStopVisual({ scene, trial, trials, fill, status, lastJudge, judgeKey, averageScore, onPointerDown, onPointerUp }) {
   return (
     <div className={`game-screen hold-stop scene-${scene}`} onPointerDown={onPointerDown} onPointerUp={onPointerUp}>
-      <Hud items={[{ label: 'TRIAL', value: `${Math.min(trial + 1, trials)}/${trials}` }]} />
+      <Hud items={[{ label: '回', value: `${Math.min(trial + 1, trials)}/${trials}` }]} />
 
       <div className="hold-track">
         <div className="hold-zone-good" />

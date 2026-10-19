@@ -77,7 +77,6 @@ export default function DuoResultView({ entries }) {
         <Particles mode="burst" active color="#FFF6E9" />
       </div>
       <Impact variant="grand" />
-      <p className="eyebrow">{isBattle ? 'battle result' : 'match result'}</p>
       <h1 className="result-title">{summary.headline}</h1>
       <p className="lead">{summary.subline}</p>
       {summary.extra && <p className="lead">{summary.extra}</p>}

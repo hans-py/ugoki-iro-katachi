@@ -3,7 +3,7 @@ import { SHARE_TEXTS } from '../data/titles.js';
 const W = 1080;
 const H = 1350;
 const INK = '#17102b';
-const BACKGROUNDS = ['#ff6a3d', '#5b7cff', '#2ed66b', '#ff3d9a'];
+const BACKGROUNDS = ['#ff4a1c', '#00c8ff', '#35ff7a', '#ffe500', '#ff2e9a'];
 
 function gameUrl() {
   return `${window.location.origin}${import.meta.env.BASE_URL}`;

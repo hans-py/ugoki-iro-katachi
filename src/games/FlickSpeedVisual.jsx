@@ -8,15 +8,12 @@ const LABEL = { perfect: 'Perfect!', good: 'Good', miss: 'Miss' };
 export default function FlickSpeedVisual({ scene, trial, trials, target, status, lastJudge, judgeKey, averageScore, onPointerDown, onPointerUp }) {
   return (
     <div className={`game-screen flick-speed scene-${scene}`} onPointerDown={onPointerDown} onPointerUp={onPointerUp}>
-      <Hud items={[{ label: 'TRIAL', value: `${Math.min(trial + 1, trials)}/${trials}` }]} />
+      <Hud items={[{ label: '回', value: `${Math.min(trial + 1, trials)}/${trials}` }]} />
 
       <div className="flick-arrow-wrap">
-        <svg className="flick-hand" viewBox="0 0 120 60" style={{ transform: `rotate(${target}deg)` }}>
-          <rect x="6" y="14" width="52" height="34" rx="14" />
-          <rect x="48" y="21" width="64" height="12" rx="6" />
-          <rect className="flick-nail" x="99" y="23.5" width="9" height="7" rx="3" />
-          <circle cx="24" cy="48" r="7" />
-          <circle cx="40" cy="49" r="7" />
+        <svg className="flick-arrow-svg" viewBox="0 0 140 70" style={{ transform: `rotate(${target}deg)` }}>
+          <rect x="6" y="26" width="92" height="18" rx="9" />
+          <polygon points="94,8 134,35 94,62" />
         </svg>
       </div>
 

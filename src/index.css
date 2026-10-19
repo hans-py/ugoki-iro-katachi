@@ -13,17 +13,18 @@
   --ink-dim: rgba(23, 16, 43, 0.62);
   --surface: #fff6e9;
   --outline: rgba(23, 16, 43, 0.14);
-  --teal: #1fc8a3;
-  --pink: #ff3d7a;
-  --gold: #ffc53d;
+  --teal: #00e5b0;
+  --pink: #ff1f7a;
+  --gold: #ffd400;
   --blood: #ff1414;
   --blood-deep: #b80000;
   --void: #0b0b0f;
 
-  --scene-coral: #ff6a3d;
-  --scene-cobalt: #5b7cff;
-  --scene-grass: #2ed66b;
-  --scene-magenta: #ff3d9a;
+  --scene-coral: #ff4a1c;
+  --scene-cobalt: #00c8ff;
+  --scene-grass: #35ff7a;
+  --scene-magenta: #ff2e9a;
+  --scene-lemon: #ffe500;
   --on-scene: var(--ink);
   --on-scene-dim: var(--ink-dim);
   --shape-accent: var(--surface);
@@ -72,6 +73,9 @@ body {
 .scene-cobalt { background: var(--scene-cobalt); }
 .scene-grass { background: var(--scene-grass); }
 .scene-magenta { background: var(--scene-magenta); }
+.scene-lemon { background: var(--scene-lemon); --shape-accent: var(--scene-magenta); }
+.scene-lemon .ambient-circle,
+.scene-lemon .ambient-square { background: var(--scene-magenta); }
 
 .screen {
   position: relative;
@@ -96,11 +100,10 @@ body {
   position: relative;
   font-family: var(--font-readout);
   font-weight: 700;
-  font-size: 0.8rem;
-  letter-spacing: 0.3em;
+  font-size: 0.9rem;
+  letter-spacing: 0.08em;
   color: var(--on-scene);
-  opacity: 0.65;
-  text-transform: uppercase;
+  opacity: 0.8;
   margin: 0 0 var(--space-2);
 }
 
@@ -291,10 +294,9 @@ body {
 }
 
 .hud-label {
-  font-size: 0.7rem;
-  letter-spacing: 0.1em;
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
   color: var(--ink-dim);
-  text-transform: uppercase;
 }
 
 .hud-value {
@@ -900,6 +902,14 @@ body {
   stroke-linecap: round;
 }
 
+.trace-arrow {
+  fill: var(--ink);
+  opacity: 0.5;
+  stroke: var(--ink);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
 .trace-path-progress {
   fill: none;
   stroke: var(--blood);
@@ -948,23 +958,15 @@ body {
   justify-content: center;
 }
 
-.flick-hand {
-  width: 190px;
-  height: 95px;
+.flick-arrow-svg {
+  width: 200px;
+  height: 100px;
   overflow: visible;
-  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-.flick-hand * {
-  fill: var(--surface);
+  fill: var(--ink);
   stroke: var(--ink);
-  stroke-width: 3.5;
+  stroke-width: 6;
   stroke-linejoin: round;
-}
-
-.flick-hand .flick-nail {
-  fill: var(--blood);
-  stroke: none;
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .poly-clap-zones {
@@ -1286,7 +1288,7 @@ body {
   poster with a QR code on it".
 */
 .scene-cycle {
-  animation: scene-cycle 28s linear infinite;
+  animation: scene-cycle 35s linear infinite;
 }
 
 .display-screen {
@@ -1342,10 +1344,11 @@ body {
 }
 
 @keyframes scene-cycle {
-  0%, 20% { background-color: var(--scene-coral); }
-  25%, 45% { background-color: var(--scene-cobalt); }
-  50%, 70% { background-color: var(--scene-grass); }
-  75%, 95% { background-color: var(--scene-magenta); }
+  0%, 16% { background-color: var(--scene-coral); }
+  20%, 36% { background-color: var(--scene-cobalt); }
+  40%, 56% { background-color: var(--scene-grass); }
+  60%, 76% { background-color: var(--scene-lemon); }
+  80%, 96% { background-color: var(--scene-magenta); }
   100% { background-color: var(--scene-coral); }
 }
 

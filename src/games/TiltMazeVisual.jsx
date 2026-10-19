@@ -85,7 +85,7 @@ export default function TiltMazeVisual({ scene, timeLeft, ball, status, hint, du
 
   return (
     <div className={`game-screen tilt-maze scene-${scene}`}>
-      <Hud items={[{ label: 'TIME', value: `${(timeLeft / 1000).toFixed(1)}s` }]} />
+      <Hud items={[{ label: 'のこり', value: `${(timeLeft / 1000).toFixed(1)}s` }]} />
 
       <div className="maze-frame">
         <canvas ref={canvasRef} style={{ width: '100%', height: '100%' }} />
