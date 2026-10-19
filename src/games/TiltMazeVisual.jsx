@@ -40,7 +40,7 @@ export default function TiltMazeVisual({ scene, timeLeft, ball, status, hint, du
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, LOGICAL_W, LOGICAL_H);
 
-    ctx.strokeStyle = '#FFFFFF';
+    ctx.strokeStyle = 'rgba(23, 16, 43, 0.7)';
     ctx.lineWidth = WALL_THICKNESS;
     ctx.lineCap = 'round';
     for (const wall of WALLS) {
@@ -52,7 +52,7 @@ export default function TiltMazeVisual({ scene, timeLeft, ball, status, hint, du
 
     // The goal is a dark hole and the thing being rolled is an eyeball whose
     // pupil keeps looking at the hole — same physics, different meaning.
-    ctx.fillStyle = 'rgba(255, 20, 20, 0.28)';
+    ctx.fillStyle = '#17102B';
     ctx.beginPath();
     ctx.arc(GOAL.x, GOAL.y, GOAL_RADIUS, 0, Math.PI * 2);
     ctx.fill();
@@ -64,6 +64,9 @@ export default function TiltMazeVisual({ scene, timeLeft, ball, status, hint, du
     ctx.beginPath();
     ctx.arc(ball.x, ball.y, BALL_RADIUS * 1.35, 0, Math.PI * 2);
     ctx.fill();
+    ctx.strokeStyle = '#17102B';
+    ctx.lineWidth = 2;
+    ctx.stroke();
 
     const lookX = GOAL.x - ball.x;
     const lookY = GOAL.y - ball.y;

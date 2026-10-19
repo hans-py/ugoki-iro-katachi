@@ -28,6 +28,7 @@ export default function HandleSteerVisual({
       <Hud items={[{ label: 'TIME', value: `${(timeLeft / 1000).toFixed(1)}s` }, { label: 'DIFF', value: `${Math.round(diff)}°` }]} />
 
       <div className="compass-dial">
+        <span className="steer-trunk" />
         <div className="compass-target" style={{ transform: `rotate(${target}deg)` }} />
         <div className="compass-needle" style={{ transform: `rotate(${rotation}deg)` }} />
         <div className="compass-hold-ring" style={{ '--progress': holdProgress }} />

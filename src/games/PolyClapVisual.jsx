@@ -31,10 +31,18 @@ export default function PolyClapVisual({
 
       <div className="poly-clap-zones">
         <div className={`poly-clap-zone poly-clap-left ${leftFlash ? `flash-${leftFlash}` : ''}`} onPointerDown={onLeftTap}>
+          <svg className="poly-icon" viewBox="0 0 34 46" style={{ left: 14 }} aria-hidden="true">
+            <path d="M17 2 V28" />
+            <path d="M8 28 H26 L23 42 H11 Z" />
+          </svg>
           <span className="poly-beat-ring" style={{ transform: `scale(${1.8 - 0.8 * leftPhase})` }} />
           <span>L・2拍子</span>
         </div>
         <div className={`poly-clap-zone poly-clap-right ${rightFlash ? `flash-${rightFlash}` : ''}`} onPointerDown={onRightTap}>
+          <svg className="poly-icon" viewBox="0 0 34 46" style={{ right: 14 }} aria-hidden="true">
+            <rect x="6" y="2" width="22" height="42" rx="2" />
+            <circle cx="23" cy="24" r="1.8" />
+          </svg>
           <span className="poly-beat-ring" style={{ transform: `scale(${1.8 - 0.8 * rightPhase})` }} />
           <span>R・3拍子</span>
         </div>

@@ -11,7 +11,13 @@ export default function FlickSpeedVisual({ scene, trial, trials, target, status,
       <Hud items={[{ label: 'TRIAL', value: `${Math.min(trial + 1, trials)}/${trials}` }]} />
 
       <div className="flick-arrow-wrap">
-        <div className="flick-arrow" style={{ transform: `rotate(${target}deg)` }} />
+        <svg className="flick-hand" viewBox="0 0 120 60" style={{ transform: `rotate(${target}deg)` }}>
+          <rect x="6" y="14" width="52" height="34" rx="14" />
+          <rect x="48" y="21" width="64" height="12" rx="6" />
+          <rect className="flick-nail" x="99" y="23.5" width="9" height="7" rx="3" />
+          <circle cx="24" cy="48" r="7" />
+          <circle cx="40" cy="49" r="7" />
+        </svg>
       </div>
 
       {status === 'playing' && <p className="hint">{getHint('flickSpeed', '通常')}</p>}
