@@ -343,8 +343,9 @@ body {
 .hint {
   position: relative;
   color: var(--on-scene);
-  opacity: 0.75;
-  font-size: 0.95rem;
+  opacity: 0.92;
+  font-size: 1rem;
+  text-wrap: balance;
   min-height: 1.4em;
 }
 
@@ -689,9 +690,10 @@ body {
   position: relative;
   max-width: 24em;
   margin: calc(-1 * var(--space-2)) 0 var(--space-4);
-  font-size: 0.85rem;
-  line-height: 1.9;
+  font-size: 1rem;
+  line-height: 1.85;
   letter-spacing: 0.04em;
+  text-wrap: balance;
   color: var(--on-scene);
   opacity: 0;
   animation: story-in 1.6s ease 0.9s forwards;
@@ -699,7 +701,7 @@ body {
 
 @keyframes story-in {
   from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 0.62; transform: translateY(0); }
+  to { opacity: 0.92; transform: translateY(0); }
 }
 
 /*
@@ -1912,8 +1914,9 @@ body {
 }
 
 .share-button {
-  font-size: 0.85rem;
-  padding: 0.6em 1.4em;
+  font-size: 0.9rem;
+  min-height: 44px;
+  padding: 0 1.4em;
 }
 
 .share-button:disabled {
@@ -1977,4 +1980,25 @@ body {
   stroke-linecap: round;
   stroke-linejoin: round;
   pointer-events: none;
+}
+
+/* Keyboard focus on every control, not just the primary button. */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible {
+  outline: 3px solid var(--ink);
+  outline-offset: 3px;
+}
+
+/* Japanese line breaking: strict kinsoku, and never overflow a narrow screen. */
+body {
+  line-break: strict;
+  overflow-wrap: anywhere;
+}
+
+.lead,
+.controller-message,
+.instruction-verb,
+.result-title {
+  text-wrap: balance;
 }
