@@ -5,8 +5,8 @@ import { getNickname } from '../../data/nicknames.js';
 import { SLOTS } from '../../data/slots.js';
 
 // How much each panel's stage is enlarged, by player count: fewer, wider
-// panels can afford a bigger game; four narrow ones need it closer to 1.
-const STAGE_SCALE = { 2: 1.4, 3: 1.2, 4: 0.95 };
+// panels can afford a bigger game; four narrow ones need it at 1 (anything smaller leaves a strip of the room background showing).
+const STAGE_SCALE = { 2: 1.4, 3: 1.2, 4: 1 };
 
 function DuoPanel({ nickname, connected, state, allReady }) {
   const label = nickname.name;

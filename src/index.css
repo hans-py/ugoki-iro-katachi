@@ -1691,7 +1691,8 @@ body {
 
 .duo-nameplate {
   position: absolute;
-  top: 18px;
+  /* bottom, so it never covers the game's own HUD at the top */
+  bottom: 18px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 5;
