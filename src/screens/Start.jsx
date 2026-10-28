@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTilt } from '../engines/useTilt.jsx';
 import { useShake } from '../engines/useShake.jsx';
 import { usePeerLink } from '../engines/usePeerLink.jsx';
@@ -10,7 +10,9 @@ export default function Start() {
   const navigate = useNavigate();
   const { requestPermission: requestTiltPermission } = useTilt();
   const { requestPermission: requestShakePermission } = useShake();
-  const { connected, joinError, leaveRoom } = usePeerLink();
+  const { connected, joinError, joinRoom, leaveRoom } = usePeerLink();
+  const [searchParams] = useSearchParams();
+  const roomInLink = searchParams.get('room');
   const [starting, setStarting] = useState(false);
   const [showDuoSelect, setShowDuoSelect] = useState(false);
 
@@ -83,8 +85,19 @@ export default function Start() {
         </div>
       )}
 
-      {joinError && (
+      {joinError === 'refused' && (
         <p className="hint">このルームは満員か、もう始まっています。ディスプレイを確認してね</p>
+      )}
+
+      {joinError === 'unreachable' && (
+        <div className="join-failed">
+          <p className="hint">ディスプレイにつながりませんでした。ディスプレイのQRを、もう一度読み取ってね</p>
+          {roomInLink && (
+            <button className="secondary-button" onClick={() => joinRoom(roomInLink)}>
+              もう一度つなぐ
+            </button>
+          )}
+        </div>
       )}
 
       {showDuoSelect && (

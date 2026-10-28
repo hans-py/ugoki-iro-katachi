@@ -74,14 +74,17 @@ function GameRunner() {
 // Start → Instruction → GO → each game, same as the tilt/shake permissions.
 function RoomJoiner() {
   const location = useLocation();
-  const { role, joinRoom } = usePeerLink();
+  const { role, joinError, joinRoom } = usePeerLink();
 
+  // A failed attempt returns the peer to idle; while the failure is showing
+  // (joinError) don't instantly retry in a loop — the Start screen offers an
+  // explicit "もう一度つなぐ" instead.
   useEffect(() => {
     const room = new URLSearchParams(location.search).get('room');
-    if (room && role === 'idle') {
+    if (room && role === 'idle' && !joinError) {
       joinRoom(room);
     }
-  }, [location.search, role, joinRoom]);
+  }, [location.search, role, joinError, joinRoom]);
 
   return null;
 }

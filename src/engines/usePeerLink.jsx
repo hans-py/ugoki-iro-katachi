@@ -23,6 +23,15 @@ import { SLOTS, slotMap } from '../data/slots.js';
 const ROOM_PREFIX = 'ugokiiro-';
 const SLOT_MSG = '__peerlink_slot__';
 const REFUSE_MSG = '__peerlink_refused__';
+// A phone that gets no answer from the room within this long gives up and
+// says so, instead of waiting forever.
+const JOIN_TIMEOUT_MS = 12000;
+// How often the display checks that its room is still reachable, and quietly
+// repairs it if not.
+const WATCHDOG_MS = 4000;
+// Errors that mean this room cannot be reached any more (as opposed to one
+// phone's connection hiccuping) — the display should start a fresh room.
+const FATAL_HOST_ERRORS = ['network', 'server-error', 'socket-error', 'socket-closed', 'unavailable-id', 'invalid-id'];
 
 function usePeerLinkState() {
   const [role, setRole] = useState('idle'); // 'idle' | 'host' | 'client'
@@ -40,19 +49,43 @@ function usePeerLinkState() {
   const hostConnsRef = useRef(new Map()); // host: peerId -> { conn, slot }
   const slotsTakenRef = useRef(slotMap(false));
   const lockedRef = useRef(false);
+  const watchdogRef = useRef(null);
+  const joinTimerRef = useRef(null);
+  const joinSettledRef = useRef(true);
+  const hostRoomRef = useRef(null);
 
-  const wireClientConnection = useCallback((conn) => {
+  // The phone could not reach (or was never answered by) the room: tear the
+  // half-made peer down and return to idle, so that trying again is
+  // possible — a stuck peer would make joinRoom refuse every later attempt.
+  const failJoin = useCallback((peer) => {
+    if (joinSettledRef.current) return;
+    joinSettledRef.current = true;
+    clearTimeout(joinTimerRef.current);
+    peer?.destroy();
+    if (peerRef.current === peer) peerRef.current = null;
+    connRef.current = null;
+    setRole('idle');
+    setRoomId(null);
+    setConnected(false);
+    setJoinError('unreachable');
+  }, []);
+
+  const wireClientConnection = useCallback((conn, peer) => {
     connRef.current = conn;
     // "Connected" only counts once the host has actually seated this phone
     // (SLOT_MSG) — a full or already-started room accepts the raw connection
     // just long enough to say so, and must not look like a successful join.
     conn.on('data', (data) => {
       if (data && data.__peerLink === SLOT_MSG) {
+        joinSettledRef.current = true;
+        clearTimeout(joinTimerRef.current);
         setMySlot(data.slot);
         setConnected(true);
         return;
       }
       if (data && data.__peerLink === REFUSE_MSG) {
+        joinSettledRef.current = true;
+        clearTimeout(joinTimerRef.current);
         setJoinError('refused');
         return;
       }
@@ -65,8 +98,10 @@ function usePeerLinkState() {
     conn.on('close', () => {
       setConnected(false);
       connRef.current = null;
+      failJoin(peer);
     });
-  }, []);
+    conn.on('error', () => failJoin(peer));
+  }, [failJoin]);
 
   const wireHostConnection = useCallback((conn) => {
     const slot = lockedRef.current ? null : SLOTS.find((s) => !slotsTakenRef.current[s]);
@@ -117,7 +152,25 @@ function usePeerLinkState() {
     });
   }, []);
 
+  // Runs for as long as this page is the display. If the room's peer has been
+  // lost (the laptop slept, Wi-Fi dropped, the signalling server went away),
+  // the QR on screen would point at nothing — so reconnect when only the
+  // signalling link is down, and open a brand-new room (new QR) when the peer
+  // itself is gone and nobody is mid-game.
+  const startWatchdog = useCallback(() => {
+    if (watchdogRef.current) return;
+    watchdogRef.current = setInterval(() => {
+      const peer = peerRef.current;
+      if (!peer || peer.destroyed) {
+        if (hostConnsRef.current.size === 0) hostRoomRef.current?.();
+        return;
+      }
+      if (peer.disconnected) peer.reconnect();
+    }, WATCHDOG_MS);
+  }, []);
+
   const hostRoom = useCallback(() => {
+    startWatchdog();
     // Checking `.destroyed` (not just truthiness) matters in dev: React
     // StrictMode's double-invoke can destroy the first peer created here
     // before this same ref is checked again — a plain truthy check would
@@ -130,22 +183,38 @@ function usePeerLinkState() {
     peer.on('open', () => setRoomId(code));
     peer.on('connection', wireHostConnection);
     wireLifecycle(peer);
-  }, [wireHostConnection, wireLifecycle]);
+    peer.on('error', (err) => {
+      if (!FATAL_HOST_ERRORS.includes(err.type) || hostConnsRef.current.size > 0) return;
+      peer.destroy();
+      if (peerRef.current === peer) peerRef.current = null;
+      setRoomId(null);
+    });
+  }, [wireHostConnection, wireLifecycle, startWatchdog]);
+
+  useEffect(() => {
+    hostRoomRef.current = hostRoom;
+  }, [hostRoom]);
 
   const joinRoom = useCallback(
     (code) => {
       if ((peerRef.current && !peerRef.current.destroyed) || !code) return;
+      joinSettledRef.current = false;
+      setJoinError(null);
       const peer = new Peer();
       peerRef.current = peer;
       setRole('client');
       setRoomId(code);
+      joinTimerRef.current = setTimeout(() => failJoin(peer), JOIN_TIMEOUT_MS);
       peer.on('open', () => {
         const conn = peer.connect(`${ROOM_PREFIX}${code}`);
-        wireClientConnection(conn);
+        wireClientConnection(conn, peer);
       });
       wireLifecycle(peer);
+      // "peer-unavailable" is the room not existing (an old QR); the rest are
+      // network problems. Either way, tell the phone instead of hanging.
+      peer.on('error', () => failJoin(peer));
     },
-    [wireClientConnection, wireLifecycle]
+    [wireClientConnection, wireLifecycle, failJoin]
   );
 
   // Lets a phone walk away from a finished duo session and become a fresh,
@@ -160,6 +229,8 @@ function usePeerLinkState() {
     hostConnsRef.current.clear();
     slotsTakenRef.current = slotMap(false);
     lockedRef.current = false;
+    clearTimeout(joinTimerRef.current);
+    joinSettledRef.current = true;
     setRole('idle');
     setRoomId(null);
     setConnected(false);
@@ -206,6 +277,9 @@ function usePeerLinkState() {
       hostConnsRef.current.clear();
       slotsTakenRef.current = slotMap(false);
       lockedRef.current = false;
+      clearInterval(watchdogRef.current);
+      watchdogRef.current = null;
+      clearTimeout(joinTimerRef.current);
     },
     []
   );

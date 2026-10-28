@@ -26,7 +26,7 @@ export default function ScanQr() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const duoMode = searchParams.get('duo'); // 'battle' | 'match' | null (solo)
-  const { connected, joinRoom } = usePeerLink();
+  const { connected, joinError, joinRoom } = usePeerLink();
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const streamRef = useRef(null);
@@ -95,6 +95,14 @@ export default function ScanQr() {
     if (connected) navigate(duoMode ? `/duo-play?mode=${duoMode}` : '/play');
   }, [connected, navigate, duoMode]);
 
+  // A failed attempt must not leave the scanner locked out: let it pick the
+  // QR up again (the camera keeps running) and say what happened.
+  useEffect(() => {
+    if (!joinError) return;
+    joinedRef.current = false;
+    setStatus('scanning');
+  }, [joinError]);
+
   const handleManualSubmit = (e) => {
     e.preventDefault();
     const code = extractRoomCode(manualCode);
@@ -117,6 +125,10 @@ export default function ScanQr() {
 
       {status === 'starting' && <p className="hint">カメラを準備中…</p>}
       {status === 'found' && <p className="hint">接続しています…</p>}
+      {joinError === 'unreachable' && (
+        <p className="hint">つながりませんでした。もう一度、ディスプレイのQRを読み取ってね</p>
+      )}
+      {joinError === 'refused' && <p className="hint">このルームは満員か、もう始まっています</p>}
       {status === 'denied' && (
         <p className="hint">カメラを使えませんでした。下に表示されているコードを直接入力してください。</p>
       )}
