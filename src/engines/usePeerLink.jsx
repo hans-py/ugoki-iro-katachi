@@ -23,6 +23,14 @@ import { SLOTS, slotMap } from '../data/slots.js';
 const ROOM_PREFIX = 'ugokiiro-';
 const SLOT_MSG = '__peerlink_slot__';
 const REFUSE_MSG = '__peerlink_refused__';
+const MODE_MSG = '__peerlink_mode__';
+const PING_MSG = '__peerlink_ping__';
+// A phone says "still here" this often; the display drops a connection it has
+// heard nothing from for DEAD_AFTER_MS. Without this, a phone that vanishes
+// without a clean goodbye (tab closed, out of signal, battery died) keeps its
+// seat in the room indefinitely.
+const PING_MS = 3000;
+const DEAD_AFTER_MS = 12000;
 // A phone that gets no answer from the room within this long gives up and
 // says so, instead of waiting forever.
 const JOIN_TIMEOUT_MS = 12000;
@@ -43,6 +51,9 @@ function usePeerLinkState() {
   const [peerStates, setPeerStates] = useState(() => slotMap(null));
   const [connectedSlots, setConnectedSlots] = useState(() => slotMap(false));
   const [joinError, setJoinError] = useState(null);
+  // What the display is currently set up for ('battle' | 'match' | 'solo'),
+  // told to a phone the moment it joins and whenever the display changes it.
+  const [roomMode, setRoomMode] = useState(null);
 
   const peerRef = useRef(null);
   const connRef = useRef(null); // client's own single connection to the host
@@ -53,6 +64,8 @@ function usePeerLinkState() {
   const joinTimerRef = useRef(null);
   const joinSettledRef = useRef(true);
   const hostRoomRef = useRef(null);
+  const roomModeRef = useRef('battle');
+  const pingTimerRef = useRef(null);
 
   // The phone could not reach (or was never answered by) the room: tear the
   // half-made peer down and return to idle, so that trying again is
@@ -79,8 +92,16 @@ function usePeerLinkState() {
       if (data && data.__peerLink === SLOT_MSG) {
         joinSettledRef.current = true;
         clearTimeout(joinTimerRef.current);
+        clearInterval(pingTimerRef.current);
+        pingTimerRef.current = setInterval(() => {
+          if (conn.open) conn.send({ __peerLink: PING_MSG });
+        }, PING_MS);
         setMySlot(data.slot);
         setConnected(true);
+        return;
+      }
+      if (data && data.__peerLink === MODE_MSG) {
+        setRoomMode(data.mode);
         return;
       }
       if (data && data.__peerLink === REFUSE_MSG) {
@@ -96,6 +117,7 @@ function usePeerLinkState() {
       setHostMessage(data);
     });
     conn.on('close', () => {
+      clearInterval(pingTimerRef.current);
       setConnected(false);
       connRef.current = null;
       failJoin(peer);
@@ -115,14 +137,18 @@ function usePeerLinkState() {
       return;
     }
     slotsTakenRef.current[slot] = true;
-    hostConnsRef.current.set(conn.peer, { conn, slot });
+    const entry = { conn, slot, lastSeen: Date.now() };
+    hostConnsRef.current.set(conn.peer, entry);
 
     conn.on('open', () => {
       setConnectedSlots((prev) => ({ ...prev, [slot]: true }));
       setConnected(true);
       conn.send({ __peerLink: SLOT_MSG, slot });
+      conn.send({ __peerLink: MODE_MSG, mode: roomModeRef.current });
     });
     conn.on('data', (data) => {
+      entry.lastSeen = Date.now();
+      if (data && data.__peerLink === PING_MSG) return;
       setPeerStates((prev) => ({ ...prev, [slot]: data }));
       if (slot === 'A') setLatestState(data);
     });
@@ -160,6 +186,10 @@ function usePeerLinkState() {
   const startWatchdog = useCallback(() => {
     if (watchdogRef.current) return;
     watchdogRef.current = setInterval(() => {
+      const now = Date.now();
+      for (const entry of [...hostConnsRef.current.values()]) {
+        if (now - entry.lastSeen > DEAD_AFTER_MS) entry.conn.close();
+      }
       const peer = peerRef.current;
       if (!peer || peer.destroyed) {
         if (hostConnsRef.current.size === 0) hostRoomRef.current?.();
@@ -230,6 +260,7 @@ function usePeerLinkState() {
     slotsTakenRef.current = slotMap(false);
     lockedRef.current = false;
     clearTimeout(joinTimerRef.current);
+    clearInterval(pingTimerRef.current);
     joinSettledRef.current = true;
     setRole('idle');
     setRoomId(null);
@@ -238,6 +269,7 @@ function usePeerLinkState() {
     setMySlot(null);
     setHostMessage(null);
     setJoinError(null);
+    setRoomMode(null);
     setPeerStates(slotMap(null));
     setConnectedSlots(slotMap(false));
   }, []);
@@ -254,6 +286,14 @@ function usePeerLinkState() {
   const broadcast = useCallback((data) => {
     for (const { conn } of hostConnsRef.current.values()) {
       if (conn.open) conn.send(data);
+    }
+  }, []);
+
+  // Host-only: set what this room is for and tell everyone already in it.
+  const setHostMode = useCallback((mode) => {
+    roomModeRef.current = mode;
+    for (const { conn } of hostConnsRef.current.values()) {
+      if (conn.open) conn.send({ __peerLink: MODE_MSG, mode });
     }
   }, []);
 
@@ -280,6 +320,7 @@ function usePeerLinkState() {
       clearInterval(watchdogRef.current);
       watchdogRef.current = null;
       clearTimeout(joinTimerRef.current);
+      clearInterval(pingTimerRef.current);
     },
     []
   );
@@ -294,12 +335,14 @@ function usePeerLinkState() {
     peerStates,
     connectedSlots,
     joinError,
+    roomMode,
     hostRoom,
     joinRoom,
     leaveRoom,
     send,
     broadcast,
     lockRoom,
+    setHostMode,
   };
 }
 

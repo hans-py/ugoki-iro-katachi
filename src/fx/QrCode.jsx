@@ -12,7 +12,9 @@ export default function QrCode({ value, size = 220 }) {
     if (!value || !canvas) return;
     QRCode.toCanvas(canvas, value, {
       width: size,
-      margin: 1,
+      // 4 modules of quiet zone: the standard minimum, which camera apps need
+      // to lock on quickly (1 was marginal on glossy or off-angle monitors).
+      margin: 4,
       color: { dark: '#17102b', light: '#fff6e9' },
     })
       .then(() => {

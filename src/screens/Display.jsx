@@ -13,13 +13,46 @@ import { SLOTS } from '../data/slots.js';
 // of this room's life — even if one player's connection later hiccups, the
 // display shouldn't flicker back to the single-player layout mid-match.
 const START_DELAY_MS = 2500;
+const MODE_KEY = 'ugoki-room-mode';
+// What a phone that scans this display's QR will play. Chosen here, by
+// whoever runs the exhibit, so a visitor only has to scan and tap start.
+const MODES = [
+  { id: 'battle', label: 'みんなで対戦', caption: '2〜4人で対戦できます' },
+  { id: 'match', label: 'みんなでマッチ度診断', caption: '2〜4人でマッチ度診断ができます' },
+  { id: 'solo', label: '一人で遊ぶ', caption: '一人で遊べます' },
+];
+
+function readMode() {
+  try {
+    const saved = localStorage.getItem(MODE_KEY);
+    return MODES.some((m) => m.id === saved) ? saved : 'battle';
+  } catch {
+    return 'battle';
+  }
+}
 
 export default function Display() {
-  const { hostRoom, roomId, connected, latestState, peerStates, connectedSlots, broadcast, lockRoom } = usePeerLink();
+  const { hostRoom, roomId, connected, latestState, peerStates, connectedSlots, broadcast, lockRoom, setHostMode } = usePeerLink();
   // Every slot that has connected during this room's life, in slot order —
   // the duo layout keeps a panel for each even if that phone later drops.
   const [activeSlots, setActiveSlots] = useState([]);
   const [started, setStarted] = useState(false);
+  const [mode, setMode] = useState(readMode);
+
+  useEffect(() => {
+    setHostMode(mode);
+    try {
+      localStorage.setItem(MODE_KEY, mode);
+    } catch {
+      // storage blocked — the switch just won't be remembered
+    }
+  }, [mode, setHostMode]);
+
+  // One player per room in solo mode: lock it once that phone is in, so a
+  // second scan can't turn the display into the split layout.
+  useEffect(() => {
+    if (mode === 'solo' && connected) lockRoom();
+  }, [mode, connected, lockRoom]);
 
   useEffect(() => {
     hostRoom();
@@ -108,8 +141,18 @@ export default function Display() {
       <div className="qr-frame">
         {joinUrl ? <QrCode value={joinUrl} size={420} /> : <p className="qr-placeholder">起動中…</p>}
       </div>
-      <p className="lead">スマホで読み取ってください</p>
+      <p className="lead">スマホのカメラで読み取ってください</p>
+      <p className="mode-caption">{MODES.find((m) => m.id === mode).caption}</p>
       {roomId && <p className="room-code">code: {roomId}</p>}
+      {!connected && (
+        <div className="mode-switch" role="group" aria-label="遊び方の切り替え">
+          {MODES.map((m) => (
+            <button key={m.id} aria-pressed={mode === m.id} onClick={() => setMode(m.id)}>
+              {m.label}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

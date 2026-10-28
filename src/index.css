@@ -1333,7 +1333,7 @@ body {
 }
 
 .display-screen .qr-frame {
-  width: min(24vw, 440px);
+  width: min(32vw, 58vh, 520px);
   border-radius: 40px;
   margin: var(--space-3) 0;
   box-shadow: 0 24px 60px rgba(23, 16, 43, 0.25);
@@ -2023,4 +2023,38 @@ body {
   align-items: center;
   gap: var(--space-2);
   margin-top: var(--space-2);
+}
+
+/* Exhibit staff's mode switch, shown on the display only while nobody is
+   connected: what a phone that scans the QR will be set up to play. */
+.mode-switch {
+  position: relative;
+  display: flex;
+  gap: var(--space-1);
+  margin-top: var(--space-2);
+}
+
+.mode-switch button {
+  min-height: 44px;
+  padding: 0 var(--space-3);
+  border: 3px solid var(--ink);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-weight: 800;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.mode-switch button[aria-pressed='true'] {
+  background: var(--ink);
+  color: var(--surface);
+}
+
+.mode-caption {
+  position: relative;
+  margin: 0;
+  font-weight: 800;
+  font-size: 1.1rem;
 }

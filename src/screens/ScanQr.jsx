@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import jsQR from 'jsqr';
 import { usePeerLink } from '../engines/usePeerLink.jsx';
 
@@ -24,8 +24,6 @@ function extractRoomCode(text) {
 // scanning whatever room code is live right now.
 export default function ScanQr() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const duoMode = searchParams.get('duo'); // 'battle' | 'match' | null (solo)
   const { connected, joinError, joinRoom } = usePeerLink();
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
@@ -92,8 +90,8 @@ export default function ScanQr() {
   }, []);
 
   useEffect(() => {
-    if (connected) navigate(duoMode ? `/duo-play?mode=${duoMode}` : '/play');
-  }, [connected, navigate, duoMode]);
+    if (connected) navigate('/');
+  }, [connected, navigate]);
 
   // A failed attempt must not leave the scanner locked out: let it pick the
   // QR up again (the camera keeps running) and say what happened.
